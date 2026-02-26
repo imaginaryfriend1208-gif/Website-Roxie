@@ -128,14 +128,15 @@ const PresetEditor = (() => {
         container.innerHTML = preset.prompts.map((p, i) => `
       <div class="prompt-item ${p.enabled ? '' : 'disabled'}" data-index="${i}" draggable="true">
         <div class="prompt-item-header">
-          <span class="drag-handle" title="Drag"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg></span>
-          <label class="toggle"><input type="checkbox" ${p.enabled ? 'checked' : ''} data-action="toggle" data-index="${i}"><span class="toggle-slider"></span></label>
+          <span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg></span>
           <span class="prompt-role ${p.role}">${p.role}</span>
           <span class="prompt-name" contenteditable="true" data-action="rename" data-index="${i}">${esc(p.name)}</span>
           <div class="prompt-actions">
-            <button class="btn btn-icon btn-ghost" data-action="move-up" data-index="${i}" title="${I18n.t('pe.move_up')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="m18 15-6-6-6 6"/></svg></button>
-            <button class="btn btn-icon btn-ghost" data-action="move-down" data-index="${i}" title="${I18n.t('pe.move_down')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="m6 9 6 6 6-6"/></svg></button>
-            <button class="btn btn-icon btn-ghost btn-danger" data-action="delete" data-index="${i}" title="${I18n.t('btn.delete')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            <button class="btn-icon" data-action="expand" data-index="${i}" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            <button class="btn-icon" data-action="move-up" data-index="${i}" title="${I18n.t('pe.move_up')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="m18 15-6-6-6 6"/></svg></button>
+            <button class="btn-icon" data-action="move-down" data-index="${i}" title="${I18n.t('pe.move_down')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="m6 9 6 6 6-6"/></svg></button>
+            <label class="toggle"><input type="checkbox" ${p.enabled ? 'checked' : ''} data-action="toggle" data-index="${i}"><span class="toggle-slider"></span></label>
+            <button class="btn-icon btn-danger" data-action="delete" data-index="${i}" title="${I18n.t('btn.delete')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
           </div>
         </div>
         <div class="prompt-item-body">
@@ -156,29 +157,46 @@ const PresetEditor = (() => {
         container.querySelectorAll('[data-action]').forEach(el => {
             const action = el.dataset.action;
             const idx = parseInt(el.dataset.index);
-            if (action === 'toggle') { el.addEventListener('change', () => { preset.prompts[idx].enabled = el.checked; save(); renderPromptList(); }); }
-            else if (action === 'role') { el.addEventListener('change', () => { preset.prompts[idx].role = el.value; save(); renderPromptList(); }); }
-            else if (action === 'content') { el.addEventListener('input', () => { preset.prompts[idx].content = el.value; save(); }); }
+            if (action === 'toggle') {
+                el.addEventListener('change', (e) => { e.stopPropagation(); preset.prompts[idx].enabled = el.checked; save(); renderPromptList(); });
+            }
+            else if (action === 'role') {
+                el.addEventListener('change', () => { preset.prompts[idx].role = el.value; save(); renderPromptList(); });
+            }
+            else if (action === 'content') {
+                el.addEventListener('input', () => { preset.prompts[idx].content = el.value; save(); });
+            }
             else if (action === 'rename') {
                 el.addEventListener('blur', () => { preset.prompts[idx].name = el.textContent.trim() || 'Untitled'; save(); });
                 el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
+                el.addEventListener('click', (e) => { e.stopPropagation(); });
+            }
+            else if (action === 'expand') {
+                el.addEventListener('click', (e) => { e.stopPropagation(); el.closest('.prompt-item').classList.toggle('expanded'); });
             }
             else if (action === 'delete') {
                 el.addEventListener('click', async (e) => { e.stopPropagation(); const ok = await App.confirm(I18n.t('pe.delete_prompt_confirm', { name: preset.prompts[idx].name })); if (!ok) return; preset.prompts.splice(idx, 1); save(); renderPromptList(); });
             }
-            else if (action === 'move-up') { el.addEventListener('click', (e) => { e.stopPropagation(); if (idx === 0) return;[preset.prompts[idx - 1], preset.prompts[idx]] = [preset.prompts[idx], preset.prompts[idx - 1]]; save(); renderPromptList(); }); }
-            else if (action === 'move-down') { el.addEventListener('click', (e) => { e.stopPropagation(); if (idx >= preset.prompts.length - 1) return;[preset.prompts[idx + 1], preset.prompts[idx]] = [preset.prompts[idx], preset.prompts[idx + 1]]; save(); renderPromptList(); }); }
+            else if (action === 'move-up') {
+                el.addEventListener('click', (e) => { e.stopPropagation(); if (idx === 0) return;[preset.prompts[idx - 1], preset.prompts[idx]] = [preset.prompts[idx], preset.prompts[idx - 1]]; save(); renderPromptList(); });
+            }
+            else if (action === 'move-down') {
+                el.addEventListener('click', (e) => { e.stopPropagation(); if (idx >= preset.prompts.length - 1) return;[preset.prompts[idx + 1], preset.prompts[idx]] = [preset.prompts[idx], preset.prompts[idx + 1]]; save(); renderPromptList(); });
+            }
         });
 
-        container.querySelectorAll('.prompt-item-header').forEach(h => {
-            h.addEventListener('click', (e) => { if (e.target.closest('[data-action]') || e.target.closest('.toggle')) return; h.closest('.prompt-item').classList.toggle('expanded'); });
-        });
-
-        // Drag and drop
+        // Drag and drop — only from drag-handle
         container.querySelectorAll('.prompt-item').forEach(item => {
-            item.addEventListener('dragstart', (e) => { dragSrcIndex = parseInt(item.dataset.index); item.style.opacity = '0.5'; e.dataTransfer.effectAllowed = 'move'; });
+            const handle = item.querySelector('.drag-handle');
+            // Prevent drag from non-handle areas
+            item.addEventListener('dragstart', (e) => {
+                if (!e.target.closest('.drag-handle')) { e.preventDefault(); return; }
+                dragSrcIndex = parseInt(item.dataset.index);
+                item.style.opacity = '0.4';
+                e.dataTransfer.effectAllowed = 'move';
+            });
             item.addEventListener('dragend', () => { item.style.opacity = '1'; container.querySelectorAll('.prompt-item').forEach(el => el.classList.remove('drag-over')); });
-            item.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; item.classList.add('drag-over'); });
+            item.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; container.querySelectorAll('.prompt-item').forEach(el => el.classList.remove('drag-over')); item.classList.add('drag-over'); });
             item.addEventListener('dragleave', () => { item.classList.remove('drag-over'); });
             item.addEventListener('drop', (e) => { e.preventDefault(); const t = parseInt(item.dataset.index); if (dragSrcIndex === t) return; const m = preset.prompts.splice(dragSrcIndex, 1)[0]; preset.prompts.splice(t, 0, m); save(); renderPromptList(); });
         });
