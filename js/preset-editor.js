@@ -148,7 +148,14 @@ const PresetEditor = (() => {
               <option value="assistant" ${p.role === 'assistant' ? 'selected' : ''}>${I18n.t('pe.role.assistant')}</option>
             </select>
           </div>
-          <textarea data-action="content" data-index="${i}" placeholder="${I18n.t('pe.prompt_placeholder')}">${esc(p.content)}</textarea>
+          <textarea data-action="content" data-index="${i}" id="pe-prompt-${i}" placeholder="${I18n.t('pe.prompt_placeholder')}">${esc(p.content)}</textarea>
+          <div class="translate-bar" style="margin-top:8px;">
+            <select class="translate-lang-select" id="pe-translate-lang-${i}">
+              ${Worldbook.TRANSLATE_LANGS.map(l => `<option value="${l.key}">${l.label}</option>`).join('')}
+            </select>
+            <button class="pe-translate-go" id="pe-translate-go-${i}" data-index="${i}">Translate</button>
+            <button class="translate-settings-btn" data-action-cfg="translate-settings" title="${I18n.t('wb.translation_settings')}">⚙️</button>
+          </div>
         </div>
       </div>
     `).join('');
@@ -199,6 +206,60 @@ const PresetEditor = (() => {
             item.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; container.querySelectorAll('.prompt-item').forEach(el => el.classList.remove('drag-over')); item.classList.add('drag-over'); });
             item.addEventListener('dragleave', () => { item.classList.remove('drag-over'); });
             item.addEventListener('drop', (e) => { e.preventDefault(); const t = parseInt(item.dataset.index); if (dragSrcIndex === t) return; const m = preset.prompts.splice(dragSrcIndex, 1)[0]; preset.prompts.splice(t, 0, m); save(); renderPromptList(); });
+        });
+
+        // Translate buttons
+        container.querySelectorAll('.pe-translate-go').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const idx = parseInt(btn.dataset.index);
+                const langSelect = document.getElementById(`pe-translate-lang-${idx}`);
+                const textarea = document.getElementById(`pe-prompt-${idx}`);
+                const lang = langSelect?.value || 'english';
+                if (!textarea || !textarea.value.trim()) return;
+
+                const settings = Store.getSettings();
+                if (!settings.apiKey) { App.toast(I18n.t('wb.translate_no_api'), 'warning'); return; }
+
+                const origText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = I18n.t('wb.translating');
+
+                try {
+                    const langName = I18n.t('wb.lang.' + lang);
+                    const prompt = (settings.translationPrompt || 'Translate the following text to {language}. Output ONLY the translated text.')
+                        .replace(/\{language\}/g, langName);
+                    const response = await fetch(settings.apiEndpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
+                        body: JSON.stringify({
+                            model: settings.model || 'gpt-4o-mini',
+                            messages: [{ role: 'system', content: prompt }, { role: 'user', content: textarea.value }],
+                            temperature: 0.3,
+                            max_tokens: 16384,
+                        }),
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const data = await response.json();
+                    const result = data.choices?.[0]?.message?.content?.trim();
+                    if (result) {
+                        textarea.value = result;
+                        preset.prompts[idx].content = result;
+                        save();
+                        App.toast(I18n.t('wb.translate_done'));
+                    }
+                } catch (err) {
+                    App.toast(I18n.t('wb.translate_error') + err.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = origText;
+                }
+            });
+        });
+
+        // Translate settings buttons
+        container.querySelectorAll('[data-action-cfg="translate-settings"]').forEach(btn => {
+            btn.addEventListener('click', (e) => { e.stopPropagation(); Worldbook.openTranslateSettings(); });
         });
     }
 
