@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roxie — SillyTavern Toolkit</title>
+  <meta name="description"
+    content="Local toolkit for SillyTavern: preset editor, character cards, worldbook, playground, and persona management">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .loading-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      animation: dotPulse 1.4s infinite ease-in-out;
+    }
+
+    @keyframes dotPulse {
+
+      0%,
+      80%,
+      100% {
+        transform: scale(0.6);
+        opacity: 0.4;
+      }
+
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-layout">
+
+    <!-- ========== SIDEBAR ========== -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">R</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-btn active" data-tab="preset-editor" id="nav-preset-editor">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+          <span class="tooltip" data-i18n="nav.preset_editor">Preset Editor</span>
+        </button>
+        <button class="sidebar-btn" data-tab="character-card" id="nav-character-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M20 21a8 8 0 1 0-16 0" />
+          </svg>
+          <span class="tooltip" data-i18n="nav.character_card">Character Card</span>
+        </button>
+        <button class="sidebar-btn" data-tab="preset-showcase" id="nav-preset-showcase">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+          </svg>
+          <span class="tooltip" data-i18n="nav.preset_showcase">Preset Showcase</span>
+        </button>
+        <button class="sidebar-btn" data-tab="worldbook" id="nav-worldbook">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+          <span class="tooltip" data-i18n="nav.worldbook">Worldbook</span>
+        </button>
+        <div class="sidebar-divider"></div>
+        <button class="sidebar-btn" data-tab="playground" id="nav-playground">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          <span class="tooltip" data-i18n="nav.playground">Playground</span>
+        </button>
+        <button class="sidebar-btn" data-tab="persona" id="nav-persona">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <span class="tooltip" data-i18n="nav.persona">User Persona</span>
+        </button>
+      </nav>
+      <div class="sidebar-divider"></div>
+      <button class="sidebar-btn" id="lang-toggle" onclick="I18n.toggleLang()"
+        style="margin-top:auto;margin-bottom:8px;font-weight:700;font-size:0.75rem;color:var(--gold);">
+        <span id="lang-toggle-label">VI</span>
+        <span class="tooltip">Switch Language</span>
+      </button>
+    </aside>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="main-content">
+
+      <!-- TAB 1: PRESET EDITOR -->
+      <section class="tab-view active" id="tab-preset-editor">
+        <div class="tab-header">
+          <h1>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            <span data-i18n="tab.preset_editor">Preset Editor</span>
+          </h1>
+          <div class="tab-actions">
+            <button class="btn btn-sm" id="pe-import">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <span data-i18n="btn.import">Import</span>
+            </button>
+            <button class="btn btn-sm" id="pe-export">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span data-i18n="btn.export">Export</span>
+            </button>
+          </div>
+        </div>
+        <div class="preset-editor-layout">
+          <div class="preset-sidebar">
+            <div class="preset-sidebar-header">
+              <button class="btn btn-primary btn-sm" id="pe-new-preset" style="width:100%;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span data-i18n="pe.new_preset">New Preset</span>
+              </button>
+              <div style="display:flex;gap:4px;">
+                <button class="btn btn-sm btn-ghost" id="pe-rename-preset" style="flex:1;"><span
+                    data-i18n="btn.rename">Rename</span></button>
+                <button class="btn btn-sm btn-ghost btn-danger" id="pe-delete-preset" style="flex:1;"><span
+                    data-i18n="btn.delete">Delete</span></button>
+              </div>
+            </div>
+            <div class="preset-list" id="pe-preset-list"></div>
+          </div>
+          <div class="prompt-editor-area">
+            <div
+              style="padding:10px 16px;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between;background:var(--bg-surface);">
+              <span style="font-size:0.85rem;color:var(--text-secondary);" data-i18n="pe.prompt_chain">Prompt
+                Chain</span>
+              <button class="btn btn-sm btn-primary" id="pe-add-prompt">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span data-i18n="pe.add_prompt">Add Prompt</span>
+              </button>
+            </div>
+            <div class="prompt-list" id="pe-prompt-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: CHARACTER CARD -->
+      <section class="tab-view" id="tab-character-card">
+        <div class="tab-header">
+          <h1>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M20 21a8 8 0 1 0-16 0" />
+            </svg>
+            <span data-i18n="tab.character_card">Character Cards</span>
+          </h1>
+          <div class="tab-actions">
+            <button class="btn btn-primary btn-sm" id="cc-upload-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <span data-i18n="cc.upload_card">Upload Card</span>
+            </button>
+            <input type="file" id="cc-file-input" accept=".png,.json,image/*" multiple style="display:none;">
+          </div>
+        </div>
+        <div class="character-layout">
+          <div class="character-gallery">
+            <div class="character-gallery-header">
+              <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+                <input class="form-input" placeholder="Search characters..." id="cc-search" data-i18n="cc.search"
+                  data-i18n-attr="placeholder">
+              </div>
+            </div>
+            <div class="character-grid" id="cc-gallery-grid">
+              <!-- Dropzone as default -->
+              <div class="dropzone" id="cc-dropzone" style="grid-column:1/-1;aspect-ratio:auto;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <p style="font-size:0.8rem;" data-i18n="cc.drop_hint">Drop PNG character cards here<br>or click to
+                  upload</p>
+              </div>
+            </div>
+          </div>
+          <div class="character-detail" id="cc-detail">
+            <div class="empty-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M20 21a8 8 0 1 0-16 0" />
+              </svg>
+              <p>Upload a character card (PNG with embedded data) or select one from the gallery.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: PRESET SHOWCASE -->
+      <section class="tab-view" id="tab-preset-showcase">
+        <div class="tab-header">
+          <h1>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+            </svg>
+            <span data-i18n="tab.preset_showcase">Preset Showcase</span>
+          </h1>
+          <div class="tab-actions">
+            <button class="btn btn-sm" id="sc-add-from-editor">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              <span data-i18n="sc.add_from_editor">Add from Editor</span>
+            </button>
+            <button class="btn btn-primary btn-sm" id="sc-upload">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <span data-i18n="sc.upload_json">Upload JSON</span>
+            </button>
+          </div>
+        </div>
+        <div class="showcase-content">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;" id="sc-tags"></div>
+          <div class="showcase-grid" id="sc-grid"></div>
+        </div>
+      </section>
+
+      <!-- TAB 4: WORLDBOOK -->
+      <section class="tab-view" id="tab-worldbook">
+        <div class="tab-header">
+          <h1>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M2 12h20" />
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+            <span data-i18n="tab.worldbook">Worldbook / Lorebook</span>
+          </h1>
+          <div class="tab-actions">
+            <button class="btn btn-sm" id="wb-import">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <span data-i18n="btn.import">Import</span>
+            </button>
+            <button class="btn btn-sm" id="wb-export">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span data-i18n="btn.export">Export</span>
+            </button>
+          </div>
+        </div>
+        <div class="worldbook-layout">
+          <div class="wb-sidebar">
+            <div class="wb-sidebar-tabs">
+              <button class="wb-sidebar-tab active" id="wb-tab-worlds" data-panel="worlds">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20" />
+                </svg>
+                <span data-i18n="wb.worlds_tab">Worlds</span>
+              </button>
+              <button class="wb-sidebar-tab" id="wb-tab-entries" data-panel="entries">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                <span data-i18n="wb.entries_tab">Entries</span>
+              </button>
+            </div>
+
+            <!-- Worlds Panel -->
+            <div class="wb-sidebar-panel active" id="wb-panel-worlds">
+              <div class="wb-sidebar-header">
+                <button class="btn btn-primary btn-sm" id="wb-new-world" style="width:100%;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  <span data-i18n="wb.new_world">New World</span>
+                </button>
+                <div style="display:flex;gap:4px;">
+                  <button class="btn btn-sm btn-ghost" id="wb-rename-world" style="flex:1;"><span
+                      data-i18n="btn.rename">Rename</span></button>
+                  <button class="btn btn-sm btn-ghost btn-danger" id="wb-delete-world" style="flex:1;"><span
+                      data-i18n="btn.delete">Delete</span></button>
+                </div>
+              </div>
+              <div class="wb-world-list" id="wb-world-list"></div>
+            </div>
+
+            <!-- Entries Panel -->
+            <div class="wb-sidebar-panel" id="wb-panel-entries">
+              <div class="wb-sidebar-header">
+                <button class="btn btn-primary btn-sm" id="wb-new-entry" style="width:100%;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  <span data-i18n="wb.new_entry">New Entry</span>
+                </button>
+                <div class="search-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                  </svg>
+                  <input class="form-input" placeholder="Search entries..." id="wb-search" data-i18n="wb.search"
+                    data-i18n-attr="placeholder">
+                </div>
+                <div style="display:flex;gap:4px;align-items:center;">
+                  <input type="checkbox" id="wb-select-all" style="accent-color:var(--gold);">
+                  <label for="wb-select-all"
+                    style="font-size:0.75rem;color:var(--text-muted);cursor:pointer;white-space:nowrap;"
+                    data-i18n="btn.all">All</label>
+                  <button class="btn btn-sm btn-ghost" id="wb-batch-enable"
+                    style="font-size:0.7rem;padding:3px 6px;"><span data-i18n="btn.enable">Enable</span></button>
+                  <button class="btn btn-sm btn-ghost" id="wb-batch-disable"
+                    style="font-size:0.7rem;padding:3px 6px;"><span data-i18n="btn.disable">Disable</span></button>
+                  <button class="btn btn-sm btn-ghost btn-danger" id="wb-batch-delete"
+                    style="font-size:0.7rem;padding:3px 6px;"><span data-i18n="btn.delete">Del</span></button>
+                </div>
+              </div>
+              <div class="wb-entry-list" id="wb-entry-list"></div>
+            </div>
+          </div>
+
+          <!-- Entry Editor -->
+          <div class="wb-editor" id="wb-editor">
+            <div class="empty-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+              <p data-i18n="wb.select_entry">Select an entry to edit</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: PLAYGROUND -->
+      <section class="tab-view" id="tab-playground">
+        <div class="tab-header">
+          <h1>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            <span data-i18n="tab.playground">Playground</span>
+          </h1>
+          <div class="tab-actions">
+            <button class="btn btn-sm" id="pg-clear">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <path d="M3 6h18" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+              </svg>
+              <span data-i18n="pg.clear">Clear</span>
+            </button>
+            <button class="btn btn-sm" id="pg-toggle-settings">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              <span data-i18n="pg.settings">Settings</span>
+            </button>
+          </div>
+        </div>
+        <div class="playground-layout">
+          <div class="playground-chat">
+            <div class="playground-messages" id="pg-messages"></div>
+            <div class="playground-input">
+              <textarea id="pg-input" placeholder="Type your message..." rows="1" data-i18n="pg.placeholder"
+                data-i18n-attr="placeholder"></textarea>
+              <button class="btn btn-primary" id="pg-send">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="playground-settings" id="pg-settings-panel">
+            <h3 data-i18n="pg.api_settings">⚙️ API Settings</h3>
+            <div class="form-group">
+              <label class="form-label" data-i18n="pg.endpoint">Endpoint URL</label>
+              <input class="form-input" id="pg-endpoint" placeholder="https://api.openai.com/v1/chat/completions">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="pg.api_key">API Key</label>
+              <input class="form-input" id="pg-api-key" type="password" placeholder="sk-...">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="pg.model">Model</label>
+              <input class="form-input" id="pg-model" placeholder="gpt-4o-mini">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="pg.temperature">Temperature</label>
+              <input class="form-input" id="pg-temperature" type="number" min="0" max="2" step="0.1" value="0.7">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="pg.max_tokens">Max Tokens</label>
+              <input class="form-input" id="pg-max-tokens" type="number" min="1" max="128000" value="2048">
+            </div>
+            <button class="btn btn-primary btn-sm" id="pg-save-settings" style="width:100%;margin-top:8px;"><span
+                data-i18n="pg.save_settings">Save Settings</span></button>
+
+            <div class="sidebar-divider" style="width:100%;margin:12px 0;"></div>
+
+            <h3 data-i18n="pg.system_instruction">📝 System Instruction</h3>
+            <textarea class="form-textarea" id="pg-system-instruction" rows="6"
+              placeholder="System instruction for the AI..." style="font-size:0.85rem;" data-i18n="pg.sys_placeholder"
+              data-i18n-attr="placeholder"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: PERSONA -->
+      <section class="tab-view" id="tab-persona">
+        <div class="tab-header">
+          <h1>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span data-i18n="tab.persona">User Persona</span>
+          </h1>
+          <div class="tab-actions">
+            <button class="btn btn-sm" id="ps-from-template">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+              <span data-i18n="ps.from_template">From Template</span>
+            </button>
+          </div>
+        </div>
+        <div class="persona-layout">
+          <div class="persona-sidebar">
+            <div class="persona-sidebar-header">
+              <button class="btn btn-primary btn-sm" id="ps-new" style="width:100%;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span data-i18n="ps.new_persona">New Persona</span>
+              </button>
+            </div>
+            <div class="persona-list" id="ps-persona-list"></div>
+          </div>
+          <div class="persona-editor" id="ps-editor"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ========== MODALS ========== -->
+
+  <!-- Confirm Dialog -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal" style="max-width:400px;">
+      <div class="modal-header">
+        <h2 data-i18n="btn.confirm">Confirm</h2>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-message"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn confirm-no" data-i18n="btn.cancel">Cancel</button>
+        <button class="btn btn-danger confirm-yes" data-i18n="btn.confirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Showcase Picker Modal -->
+  <div class="modal-overlay" id="sc-picker-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 data-i18n="sc.select_preset">Select Preset to Add</h2>
+        <button class="modal-close" onclick="App.hideModal('sc-picker-modal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="sc-picker-list"></div>
+    </div>
+  </div>
+
+  <!-- Showcase Detail Modal -->
+  <div class="modal-overlay" id="sc-detail-modal">
+    <div class="modal" style="max-width:700px;">
+      <div class="modal-header">
+        <h2 data-i18n="sc.preset_detail">Preset Detail</h2>
+        <button class="modal-close" onclick="App.hideModal('sc-detail-modal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="sc-detail-content"></div>
+    </div>
+  </div>
+
+  <!-- Persona Template Picker Modal -->
+  <div class="modal-overlay" id="ps-template-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 data-i18n="ps.choose_template">Choose Template</h2>
+        <button class="modal-close" onclick="App.hideModal('ps-template-modal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="template-grid" id="ps-template-picker-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TRANSLATION SETTINGS MODAL ========== -->
+  <div class="translate-settings-overlay" id="wb-translate-settings-overlay">
+    <div class="translate-settings-modal">
+      <h3>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M2 12h20" />
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+        </svg>
+        <span data-i18n="wb.translation_settings">Translation Settings</span>
+      </h3>
+      <div class="form-group">
+        <label class="form-label" data-i18n="wb.translation_prompt_label">Translation Prompt</label>
+        <textarea class="form-textarea" id="wb-translate-prompt-input" rows="6"
+          placeholder="Translation prompt..."></textarea>
+        <p class="hint" data-i18n="wb.translation_prompt_hint">Use {language} as placeholder for the target language
+          name. The text to translate will be appended after this prompt.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="wb-translate-settings-cancel" data-i18n="btn.cancel">Cancel</button>
+        <button class="btn btn-primary" id="wb-translate-settings-save" data-i18n="btn.save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== AUTO-SAVE INDICATOR ========== -->
+  <div class="autosave-indicator" id="autosave-indicator">
+    <span class="dot"></span> <span data-i18n="autosave">Auto-saved</span>
+  </div>
+
+  <!-- ========== TOAST CONTAINER ========== -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ========== SCRIPTS ========== -->
+  <script src="js/store.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/preset-editor.js"></script>
+  <script src="js/character-card.js"></script>
+  <script src="js/preset-showcase.js"></script>
+  <script src="js/worldbook.js"></script>
+  <script src="js/playground.js"></script>
+  <script src="js/persona.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>
