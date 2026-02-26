@@ -207,7 +207,7 @@ const Worldbook = (() => {
       <select class="translate-lang-select" id="translate-lang-${fieldId}">
         ${TRANSLATE_LANGS.map(l => `<option value="${l.key}">${l.label}</option>`).join('')}
       </select>
-      <button class="translate-go-btn" id="translate-go-${fieldId}">🌐 ${I18n.t('wb.translate')}</button>
+      <button class="pe-translate-go" id="translate-go-${fieldId}">${I18n.t('wb.translate')}</button>
       <button class="translate-settings-btn" id="translate-cfg-${fieldId}" title="${I18n.t('wb.translation_settings')}">⚙️</button>
     </div>`;
   }

@@ -154,11 +154,11 @@ const CharacterCard = (() => {
             <button class="btn btn-sm btn-danger" id="cc-delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg> ${I18n.t('btn.delete')}</button>
           </div>
           <div class="cc-translate-bar">
-            <span class="translate-label">🌐 ${I18n.t('wb.translate')}</span>
+            <span class="translate-label">${I18n.t('wb.translate')}</span>
             <select class="translate-lang-select" id="cc-translate-lang">
               ${Worldbook.TRANSLATE_LANGS.map(l => `<option value="${l.key}">${l.label}</option>`).join('')}
             </select>
-            <button class="translate-go-btn" id="cc-translate-all">🌐 ${I18n.t('wb.translate')}</button>
+            <button class="pe-translate-go" id="cc-translate-all">${I18n.t('wb.translate')}</button>
             <button class="translate-settings-btn" id="cc-translate-cfg" title="${I18n.t('wb.translation_settings')}">⚙️</button>
           </div>
         </div>
