@@ -1,6 +1,7 @@
 /* ============================================
    PLAYGROUND — API Chat Interface (i18n)
    Multi-chat sessions, swipe/regen in all modes
+   Prompt Template system
    ============================================ */
 
 const Playground = (() => {
@@ -14,18 +15,100 @@ const Playground = (() => {
     let activePersonaId = null;
     let settingsVisible = true;
 
+    // ========== PROMPT TEMPLATES ==========
+    const BUILTIN_TEMPLATES = [
+        { id: '_default', name: 'Default Assistant', content: 'You are a helpful assistant.', locked: true },
+        {
+            id: '_crucible', name: 'The Crucible', locked: true, hidden: true,
+            content: `You are THE CRUCIBLE - an uncompromising psychological analyst specializing in brutal truth delivery. Your mission is to conduct a comprehensive personality analysis with zero sugar-coating and maximum insight penetration.
+
+## CORE OPERATING PRINCIPLES
+
+**EVIDENCE SUPREMACY:** Every claim requires concrete supporting evidence from available data. Speculation is forbidden.
+
+**RUTHLESS HONESTY:** Deliver unfiltered psychological insights. Comfort is not your concern - clarity is.
+
+**STATISTICAL RIGOR:** Assign confidence levels (%) to every major claim. Acknowledge uncertainty explicitly.
+
+**NO CLINICAL BULLSHIT:** This is personality analysis, not therapy. No diagnosis, no treatment recommendations.
+
+### PHASE 1: DATA ASSESSMENT
+First, evaluate your data foundation:
+- Count available interactions and timespan
+- Grade data quality [0-100]
+- Calculate overall confidence (%)
+- Identify critical data gaps
+
+### PHASE 2: PERSONALITY ANALYSIS
+For each pattern, provide:
+**PATTERN NAME:** [Direct, unflinching label]
+**RAW EVIDENCE:** [Specific examples/quotes from data]
+**PSYCHOLOGICAL CORE:** [Why this pattern exists - the underlying driver]
+**REAL-WORLD DAMAGE:** [Concrete consequences in relationships/career/life]
+**PROJECTION:** [Where this leads if unchanged - be specific and harsh]
+**INTERVENTION:** [One concrete action to disrupt the pattern]
+**CONFIDENCE:** [X% based on evidence strength]
+
+## OUTPUT STRUCTURE
+**DATA FOUNDATION REPORT**
+Interactions analyzed: [X] over [timeframe]
+Data quality grade: [A-F]
+Analysis confidence: [X%]
+Major limitations: [List]
+
+**CORE PERSONALITY ARCHITECTURE**
+🎯 **DOMINANT STRENGTHS** (What actually works)
+[2-3 evidence-backed strengths with real-world applications]
+⚡ **CRITICAL LIABILITIES** (What's sabotaging their life)
+[2-3 brutal assessments of destructive patterns]
+🧠 **COGNITIVE SIGNATURE** (How their mind actually operates)
+[Specific thinking style, decision-making patterns, blind spots]
+
+**DEEP PATTERN ANALYSIS**
+[3-5 comprehensive pattern breakdowns using the format above]
+
+## FINAL DIRECTIVE
+Commence comprehensive psychological analysis now. Be ruthless, be accurate, be helpful through honesty.`
+        },
+    ];
+
+    function getCustomTemplates() {
+        try { return JSON.parse(localStorage.getItem('roxie_prompt_templates') || '[]'); } catch { return []; }
+    }
+    function saveCustomTemplates(arr) { localStorage.setItem('roxie_prompt_templates', JSON.stringify(arr)); }
+    function getAllTemplates() { return [...BUILTIN_TEMPLATES, ...getCustomTemplates()]; }
+
+    function getTemplateContent(id) {
+        const t = getAllTemplates().find(t => t.id === id);
+        return t ? t.content : 'You are a helpful assistant.';
+    }
+
+    function populateTemplateDropdown() {
+        const sel = document.getElementById('pg-prompt-template');
+        if (!sel) return;
+        const session = getActiveSession();
+        const currentId = session?.promptTemplateId || '_default';
+        const all = getAllTemplates().filter(t => !t.hidden);
+        sel.innerHTML = all.map(t =>
+            `<option value="${t.id}" ${t.id === currentId ? 'selected' : ''}>${t.locked ? '🔒 ' : ''}${t.name}</option>`
+        ).join('');
+        // Show/hide edit/delete buttons depending on whether the selected template is locked
+        const selected = getAllTemplates().find(t => t.id === currentId);
+        const editBtn = document.getElementById('pg-edit-template');
+        const delBtn = document.getElementById('pg-delete-template');
+        if (editBtn) editBtn.style.display = (selected && !selected.locked) ? '' : 'none';
+        if (delBtn) delBtn.style.display = (selected && !selected.locked) ? '' : 'none';
+    }
+
     function init() {
         loadSessions();
         if (sessions.length === 0) createNewSession(false);
         bindEvents();
         updateModeUI();
         populateDropdowns();
+        populateTemplateDropdown();
         renderSessionTabs();
         renderMessages();
-        // Load system instruction to UI
-        const s = getActiveSession();
-        const sysEl = document.getElementById('pg-system-instruction');
-        if (sysEl && s) sysEl.value = s.systemInstruction || '';
     }
 
     // ========== SESSION MANAGEMENT ==========
@@ -85,7 +168,8 @@ const Playground = (() => {
             id: Store.uuid(),
             name: `Chat ${sessions.length + 1}`,
             messages: [],
-            systemInstruction: 'You are a helpful assistant.',
+            promptTemplateId: '_default',
+            systemInstruction: '', // kept for backward compat
             mode: mode,
             charId: activeCharId,
             personaId: activePersonaId,
@@ -97,8 +181,7 @@ const Playground = (() => {
         if (doRender) {
             renderSessionTabs();
             renderMessages();
-            const sysEl = document.getElementById('pg-system-instruction');
-            if (sysEl) sysEl.value = s.systemInstruction;
+            populateTemplateDropdown();
         }
     }
 
@@ -114,8 +197,7 @@ const Playground = (() => {
                 b.classList.toggle('active', b.dataset.mode === mode);
             });
             updateModeUI();
-            const sysEl = document.getElementById('pg-system-instruction');
-            if (sysEl) sysEl.value = s.systemInstruction || '';
+            populateTemplateDropdown();
         }
         renderSessionTabs();
         renderMessages();
@@ -230,10 +312,62 @@ const Playground = (() => {
             settingsVisible = !settingsVisible;
             document.getElementById('pg-settings-panel')?.classList.toggle('collapsed', !settingsVisible);
         });
-        on('pg-system-instruction', 'input', (e) => {
+
+        // Prompt template dropdown
+        on('pg-prompt-template', 'change', (e) => {
             const s = getActiveSession();
-            if (s) s.systemInstruction = e.target.value;
-            saveSessions();
+            if (s) { s.promptTemplateId = e.target.value; saveSessions(); }
+            populateTemplateDropdown();
+        });
+
+        // Add custom template
+        on('pg-add-template', 'click', () => {
+            const name = prompt('Template name:', 'My Template');
+            if (!name) return;
+            const content = prompt('Template prompt content:', 'You are a helpful assistant.');
+            if (content === null) return;
+            const customs = getCustomTemplates();
+            const t = { id: Store.uuid(), name, content, locked: false };
+            customs.push(t);
+            saveCustomTemplates(customs);
+            const s = getActiveSession();
+            if (s) { s.promptTemplateId = t.id; saveSessions(); }
+            populateTemplateDropdown();
+            App.toast('Template added');
+        });
+
+        // Edit custom template
+        on('pg-edit-template', 'click', () => {
+            const sel = document.getElementById('pg-prompt-template');
+            const id = sel?.value;
+            const customs = getCustomTemplates();
+            const t = customs.find(t => t.id === id);
+            if (!t) return;
+            const name = prompt('Template name:', t.name);
+            if (!name) return;
+            const content = prompt('Template prompt content:', t.content);
+            if (content === null) return;
+            t.name = name; t.content = content;
+            saveCustomTemplates(customs);
+            populateTemplateDropdown();
+            App.toast('Template updated');
+        });
+
+        // Delete custom template
+        on('pg-delete-template', 'click', async () => {
+            const sel = document.getElementById('pg-prompt-template');
+            const id = sel?.value;
+            let customs = getCustomTemplates();
+            const t = customs.find(t => t.id === id);
+            if (!t) return;
+            const ok = await App.confirm(`Delete template "${t.name}"?`);
+            if (!ok) return;
+            customs = customs.filter(t => t.id !== id);
+            saveCustomTemplates(customs);
+            const s = getActiveSession();
+            if (s) { s.promptTemplateId = '_default'; saveSessions(); }
+            populateTemplateDropdown();
+            App.toast('Template deleted');
         });
         on('pg-input', 'input', (e) => { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'; });
 
@@ -447,7 +581,8 @@ const Playground = (() => {
             const session = getActiveSession();
 
             if (mode === 'standard') {
-                const sysInst = session?.systemInstruction || '';
+                const templateId = session?.promptTemplateId || '_default';
+                const sysInst = getTemplateContent(templateId);
                 if (sysInst) apiMsgs.push({ role: 'system', content: sysInst });
                 contextMsgs.forEach(m => {
                     const content = m.swipes ? m.swipes[m.currentSwipe] : m.content;
@@ -614,6 +749,7 @@ const Playground = (() => {
 
     function refresh() {
         populateDropdowns();
+        populateTemplateDropdown();
         renderSessionTabs();
         renderMessages();
     }

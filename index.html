@@ -465,10 +465,18 @@
           </div>
           <div class="playground-settings" id="pg-settings-panel">
             <div id="pg-sys-inst-container">
-              <h3 data-i18n="pg.system_instruction">📝 System Instruction</h3>
+              <h3 style="font-size:0.85rem;color:var(--text-gold);margin-bottom:8px;">📝 Prompt Template</h3>
+              <select class="form-select" id="pg-prompt-template"
+                style="width:100%;margin-bottom:12px;font-size:0.82rem;"></select>
+              <div id="pg-template-actions" style="display:flex;gap:6px;margin-bottom:12px;">
+                <button class="btn btn-sm" id="pg-add-template" style="flex:1;font-size:0.72rem;">+ Add
+                  Template</button>
+                <button class="btn btn-sm" id="pg-edit-template" style="font-size:0.72rem;">✏️</button>
+                <button class="btn btn-sm btn-danger" id="pg-delete-template" style="font-size:0.72rem;">🗑</button>
+              </div>
               <textarea class="form-textarea" id="pg-system-instruction" rows="6"
-                placeholder="System instruction for the AI..." style="font-size:0.85rem;" data-i18n="pg.sys_placeholder"
-                data-i18n-attr="placeholder"></textarea>
+                placeholder="System instruction for the AI..." style="font-size:0.82rem;display:none;"
+                data-i18n="pg.sys_placeholder" data-i18n-attr="placeholder"></textarea>
             </div>
             <div id="pg-char-api-hint"
               style="display:none;background:rgba(201,168,76,0.05);border:1px dashed var(--border-gold);padding:12px;border-radius:var(--radius-sm);margin-top:12px;">

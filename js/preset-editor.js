@@ -1,20 +1,70 @@
 /* ============================================
    PRESET EDITOR — Chat Completion Style
+   Supports locked (built-in) presets
    ============================================ */
 
 const PresetEditor = (() => {
     let presets = [];
     let activePresetId = null;
     let dragSrcIndex = null;
+    let roxiePresetData = null; // Loaded from data/roxie-preset.json
 
-    function init() {
+    async function init() {
+        // Load the built-in Roxie preset
+        try {
+            const res = await fetch('data/roxie-preset.json');
+            if (res.ok) roxiePresetData = await res.json();
+        } catch (e) { console.warn('Could not load Roxie preset:', e); }
+
         presets = Store.getPresets();
+
+        // Ensure the built-in Roxie preset exists
+        if (roxiePresetData) {
+            const existing = presets.find(p => p._builtIn === 'roxie-6.4.3');
+            if (!existing) {
+                const roxiePreset = {
+                    id: 'roxie-6.4.3',
+                    _builtIn: 'roxie-6.4.3',
+                    name: '🔒 Roxie 6.4.3',
+                    locked: true,
+                    prompts: (roxiePresetData.prompts || []).map(p => ({
+                        id: p.identifier || Store.uuid(),
+                        role: p.role || 'system',
+                        name: p.name || 'Untitled',
+                        content: p.content || '',
+                        enabled: p.system_prompt !== false ? true : (p.enabled !== false),
+                        marker: p.marker || false,
+                        injection_position: p.injection_position,
+                        injection_depth: p.injection_depth,
+                    })),
+                    createdAt: Date.now(),
+                };
+                presets.unshift(roxiePreset); // Put at top
+                Store.savePresets(presets);
+            } else {
+                // Update prompts from file (in case file was updated)
+                existing.prompts = (roxiePresetData.prompts || []).map(p => ({
+                    id: p.identifier || Store.uuid(),
+                    role: p.role || 'system',
+                    name: p.name || 'Untitled',
+                    content: p.content || '',
+                    enabled: p.system_prompt !== false ? true : (p.enabled !== false),
+                    marker: p.marker || false,
+                    injection_position: p.injection_position,
+                    injection_depth: p.injection_depth,
+                }));
+                existing.locked = true;
+                existing.name = '🔒 Roxie 6.4.3';
+                Store.savePresets(presets);
+            }
+        }
+
         if (presets.length === 0) {
             presets.push(createDefaultPreset());
             Store.savePresets(presets);
         }
-        activePresetId = activePresetId || presets[0]?.id || null;
 
+        activePresetId = activePresetId || presets[0]?.id || null;
         bindEvents();
         renderPresetList();
         renderPromptList();
@@ -35,6 +85,11 @@ const PresetEditor = (() => {
         return presets.find(p => p.id === activePresetId);
     }
 
+    function isLocked() {
+        const p = getActivePreset();
+        return p && p.locked === true;
+    }
+
     function bindEvents() {
         const on = (id, event, fn) => {
             const el = document.getElementById(id);
@@ -52,7 +107,7 @@ const PresetEditor = (() => {
 
         on('pe-add-prompt', 'click', () => {
             const preset = getActivePreset();
-            if (!preset) return;
+            if (!preset || preset.locked) return;
             preset.prompts.push({ id: Store.uuid(), role: 'system', name: I18n.t('pe.prompt_name_default'), content: '', enabled: true });
             save(); renderPromptList();
         });
@@ -80,7 +135,7 @@ const PresetEditor = (() => {
 
         on('pe-delete-preset', 'click', async () => {
             const preset = getActivePreset();
-            if (!preset) return;
+            if (!preset || preset.locked) { App.toast('Cannot delete built-in preset', 'warning'); return; }
             const ok = await App.confirm(I18n.t('pe.delete_confirm', { name: preset.name }));
             if (!ok) return;
             presets = presets.filter(p => p.id !== preset.id);
@@ -90,7 +145,7 @@ const PresetEditor = (() => {
 
         on('pe-rename-preset', 'click', () => {
             const preset = getActivePreset();
-            if (!preset) return;
+            if (!preset || preset.locked) return;
             const name = prompt(I18n.t('pe.rename_prompt'), preset.name);
             if (!name) return;
             preset.name = name;
@@ -104,10 +159,10 @@ const PresetEditor = (() => {
         const list = document.getElementById('pe-preset-list');
         if (!list) return;
         list.innerHTML = presets.map(p => `
-      <div class="preset-list-item ${p.id === activePresetId ? 'active' : ''}" data-id="${p.id}">
+      <div class="preset-list-item ${p.id === activePresetId ? 'active' : ''} ${p.locked ? 'locked' : ''}" data-id="${p.id}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.name)}</span>
-        <span style="font-size:0.7rem;color:var(--text-muted);">${p.prompts.length}</span>
+        <span style="font-size:0.7rem;color:var(--text-muted);">${p.locked ? '🔒' : p.prompts.length}</span>
       </div>
     `).join('');
 
@@ -125,6 +180,33 @@ const PresetEditor = (() => {
             return;
         }
 
+        // If locked: show prompt names only, no content, no controls
+        if (preset.locked) {
+            container.innerHTML = `
+                <div class="locked-preset-notice">
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32" style="margin-bottom:8px;opacity:0.5;">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <p>Built-in preset — read-only</p>
+                        <p style="font-size:0.75rem;margin-top:4px;">This preset cannot be edited or viewed. It contains ${preset.prompts.length} prompt items.</p>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:4px;padding:0 16px 16px;">
+                        ${preset.prompts.map((p, i) => `
+                            <div class="locked-prompt-item" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-surface);border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
+                                <span class="prompt-role ${p.role}" style="font-size:0.65rem;padding:2px 6px;border-radius:3px;">${p.role}</span>
+                                <span style="flex:1;font-size:0.8rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.name)}</span>
+                                ${p.marker ? '<span style="font-size:0.65rem;color:var(--text-gold);">📌 marker</span>' : ''}
+                                <span style="font-size:0.65rem;color:${p.enabled !== false ? 'var(--success)' : 'var(--text-muted)'};">${p.enabled !== false ? '●' : '○'}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        // Normal editable preset
         container.innerHTML = preset.prompts.map((p, i) => `
       <div class="prompt-item ${p.enabled ? '' : 'disabled'}" data-index="${i}" draggable="true">
         <div class="prompt-item-header">
@@ -192,10 +274,8 @@ const PresetEditor = (() => {
             }
         });
 
-        // Drag and drop — only from drag-handle
+        // Drag and drop
         container.querySelectorAll('.prompt-item').forEach(item => {
-            const handle = item.querySelector('.drag-handle');
-            // Prevent drag from non-handle areas
             item.addEventListener('dragstart', (e) => {
                 if (!e.target.closest('.drag-handle')) { e.preventDefault(); return; }
                 dragSrcIndex = parseInt(item.dataset.index);
@@ -227,14 +307,14 @@ const PresetEditor = (() => {
 
                 try {
                     const langName = I18n.t('wb.lang.' + lang);
-                    const prompt = (settings.translationPrompt || 'Translate the following text to {language}. Output ONLY the translated text.')
+                    const tPrompt = (settings.translationPrompt || 'Translate the following text to {language}. Output ONLY the translated text.')
                         .replace(/\{language\}/g, langName);
                     const response = await fetch(settings.apiEndpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
                         body: JSON.stringify({
                             model: settings.model || 'gpt-4o-mini',
-                            messages: [{ role: 'system', content: prompt }, { role: 'user', content: textarea.value }],
+                            messages: [{ role: 'system', content: tPrompt }, { role: 'user', content: textarea.value }],
                             temperature: 0.3,
                             max_tokens: 16384,
                         }),
