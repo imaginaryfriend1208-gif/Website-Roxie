@@ -1,5 +1,6 @@
 /* ============================================
    WORLDBOOK / LOREBOOK — Full Editor (i18n)
+   Entry Content Templates
    ============================================ */
 
 const Worldbook = (() => {
@@ -7,6 +8,94 @@ const Worldbook = (() => {
   let activeWorldId = null;
   let activeEntryId = null;
   let searchQuery = '';
+
+  // ========== ENTRY CONTENT TEMPLATES ==========
+  const BUILTIN_ENTRY_TEMPLATES = [
+    {
+      id: '_char', name: '🎭 Character', locked: true,
+      content: `[Character: {{name}}]
+Species: 
+Age: 
+Gender: 
+Appearance: 
+Personality: 
+Background: 
+Abilities/Skills: 
+Motivations: 
+Flaws/Weaknesses: 
+Relationships: 
+Quirks/Habits: 
+Speech Pattern: `
+    },
+    {
+      id: '_world', name: '🌍 World / Location', locked: true,
+      content: `[Location: {{name}}]
+Type: (city / village / dungeon / wilderness / building / etc.)
+Region/Realm: 
+Climate/Environment: 
+Population: 
+Notable Features: 
+History: 
+Culture/Customs: 
+Governance: 
+Dangers/Threats: 
+Resources: 
+Connected Locations: `
+    },
+    {
+      id: '_object', name: '🗡️ Object / Item', locked: true,
+      content: `[Item: {{name}}]
+Type: (weapon / armor / artifact / consumable / tool / etc.)
+Appearance: 
+Properties/Effects: 
+Origin/History: 
+Rarity: 
+Current Owner/Location: 
+Restrictions/Requirements: `
+    },
+    {
+      id: '_faction', name: '⚔️ Faction / Organization', locked: true,
+      content: `[Faction: {{name}}]
+Type: (guild / kingdom / cult / corporation / etc.)
+Leader(s): 
+Goals/Motivations: 
+Ideology/Values: 
+Territory/HQ: 
+Membership: 
+Allies: 
+Enemies: 
+Notable Members: 
+Resources/Power: `
+    },
+    {
+      id: '_event', name: '📜 Event / History', locked: true,
+      content: `[Event: {{name}}]
+Timeframe: 
+Location: 
+Key Participants: 
+Cause/Trigger: 
+Description: 
+Outcome/Consequences: 
+Legacy/Impact: `
+    },
+    {
+      id: '_lore', name: '📖 Lore / Rule', locked: true,
+      content: `[Lore: {{name}}]
+Category: (magic system / religion / technology / law / custom / etc.)
+Description: 
+Rules/Mechanics: 
+Limitations: 
+Origin: 
+Known Practitioners: 
+Cultural Impact: `
+    },
+  ];
+
+  function getCustomEntryTemplates() {
+    try { return JSON.parse(localStorage.getItem('roxie_entry_templates') || '[]'); } catch { return []; }
+  }
+  function saveCustomEntryTemplates(arr) { localStorage.setItem('roxie_entry_templates', JSON.stringify(arr)); }
+  function getAllEntryTemplates() { return [...BUILTIN_ENTRY_TEMPLATES, ...getCustomEntryTemplates()]; }
 
   function init() {
     worlds = Store.getWorlds();
@@ -254,10 +343,14 @@ const Worldbook = (() => {
           <div class="form-group"><label class="form-label">${I18n.t('wb.field.cooldown')}</label><input class="form-input" type="number" value="${entry.cooldown}" min="0" data-field="cooldown"></div>
         </div>
         <div class="wb-editor-content-wrap">
-          <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;">
-            ${I18n.t('wb.field.content')}
+          <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+            <span style="display:flex;align-items:center;gap:6px;">
+              ${I18n.t('wb.field.content')}
+              <button class="btn btn-sm" id="wb-template-btn" style="font-size:0.7rem;padding:2px 8px;" title="Insert template">📋 Template</button>
+            </span>
             ${translateBarHtml('wb-f-content')}
           </label>
+          <div id="wb-template-popup" class="wb-template-popup" style="display:none;"></div>
           <textarea class="form-textarea" data-field="content" id="wb-f-content" placeholder="${I18n.t('wb.field.content')}...">${esc(entry.content)}</textarea>
         </div>
         <div class="wb-editor-toggles">
@@ -301,6 +394,9 @@ const Worldbook = (() => {
 
     // --- Content translate bar ---
     bindTranslateBar('wb-f-content');
+
+    // --- Template picker ---
+    bindTemplateButton(entry);
   }
 
   function bindTranslateBar(fieldId) {
@@ -314,6 +410,125 @@ const Worldbook = (() => {
     });
 
     cfgBtn?.addEventListener('click', () => openTranslateSettings());
+  }
+
+  // ========== TEMPLATE PICKER ==========
+  function bindTemplateButton(entry) {
+    const btn = document.getElementById('wb-template-btn');
+    const popup = document.getElementById('wb-template-popup');
+    if (!btn || !popup) return;
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (popup.style.display === 'block') { popup.style.display = 'none'; return; }
+      renderTemplatePopup(popup, entry);
+      popup.style.display = 'block';
+    });
+
+    // Close popup when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!popup.contains(e.target) && e.target !== btn) popup.style.display = 'none';
+    }, { once: false });
+  }
+
+  function renderTemplatePopup(popup, entry) {
+    const all = getAllEntryTemplates();
+    popup.innerHTML = `
+      <div class="wb-tpl-header">
+        <span style="font-weight:600;font-size:0.8rem;color:var(--text-gold);">📋 Entry Templates</span>
+        <div style="display:flex;gap:4px;">
+          <button class="btn btn-sm" id="wb-tpl-add" style="font-size:0.68rem;padding:2px 8px;">+ New</button>
+          <button class="btn btn-sm" id="wb-tpl-import" style="font-size:0.68rem;padding:2px 8px;">📥 Import</button>
+        </div>
+      </div>
+      <div class="wb-tpl-list">
+        ${all.map(t => `
+          <div class="wb-tpl-item" data-tpl-id="${t.id}">
+            <span class="wb-tpl-name">${t.locked ? '' : ''}${esc(t.name)}</span>
+            <div class="wb-tpl-actions">
+              <button class="wb-tpl-use" data-tpl-id="${t.id}" title="Insert">✅</button>
+              ${!t.locked ? `<button class="wb-tpl-del" data-tpl-id="${t.id}" title="Delete">🗑</button>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    // Use template
+    popup.querySelectorAll('.wb-tpl-use').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const tpl = all.find(t => t.id === btn.dataset.tplId);
+        if (!tpl) return;
+        const textarea = document.getElementById('wb-f-content');
+        if (!textarea) return;
+        // Insert template content (replace {{name}} with entry title)
+        const content = tpl.content.replace(/\{\{name\}\}/gi, entry.title || 'Untitled');
+        textarea.value = content;
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        popup.style.display = 'none';
+        App.toast(`Template "${tpl.name}" applied`);
+      });
+    });
+
+    // Delete custom template
+    popup.querySelectorAll('.wb-tpl-del').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.tplId;
+        let customs = getCustomEntryTemplates();
+        const t = customs.find(t => t.id === id);
+        if (!t) return;
+        const ok = await App.confirm(`Delete template "${t.name}"?`);
+        if (!ok) return;
+        customs = customs.filter(t => t.id !== id);
+        saveCustomEntryTemplates(customs);
+        renderTemplatePopup(popup, entry);
+        App.toast('Template deleted');
+      });
+    });
+
+    // Add new custom template
+    document.getElementById('wb-tpl-add')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const name = prompt('Template name:', 'My Template');
+      if (!name) return;
+      const content = prompt('Template content (use {{name}} as placeholder):', '[{{name}}]\nDescription: ');
+      if (content === null) return;
+      const customs = getCustomEntryTemplates();
+      customs.push({ id: Store.uuid(), name, content, locked: false });
+      saveCustomEntryTemplates(customs);
+      renderTemplatePopup(popup, entry);
+      App.toast('Template added');
+    });
+
+    // Import template from JSON
+    document.getElementById('wb-tpl-import')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const input = document.createElement('input');
+      input.type = 'file'; input.accept = '.json,.txt';
+      input.onchange = async (ev) => {
+        try {
+          const file = ev.target.files[0];
+          const text = await file.text();
+          let tplData;
+          try { tplData = JSON.parse(text); } catch {
+            // Plain text file — use filename as name, content as template
+            tplData = { name: file.name.replace(/\.[^.]+$/, ''), content: text };
+          }
+          const customs = getCustomEntryTemplates();
+          if (Array.isArray(tplData)) {
+            tplData.forEach(t => customs.push({ id: Store.uuid(), name: t.name || 'Imported', content: t.content || '', locked: false }));
+          } else {
+            customs.push({ id: Store.uuid(), name: tplData.name || 'Imported', content: tplData.content || '', locked: false });
+          }
+          saveCustomEntryTemplates(customs);
+          renderTemplatePopup(popup, entry);
+          App.toast('Template(s) imported');
+        } catch (err) { App.toast('Import failed: ' + err.message, 'error'); }
+      };
+      input.click();
+    });
   }
 
   async function translateField(fieldId, langKey) {
