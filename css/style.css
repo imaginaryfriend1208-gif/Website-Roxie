@@ -1646,11 +1646,46 @@ body {
   gap: 16px;
 }
 
+.pg-subtabs {
+  margin-top: 4px;
+}
+
+.pg-subtab {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 0;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.pg-subtab:hover {
+  color: var(--text-primary);
+}
+
+.pg-subtab.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.pg-char-setup {
+  width: 260px;
+  min-width: 260px;
+  border-right: 1px solid var(--border-subtle);
+  background: var(--bg-deep);
+  overflow-y: auto;
+}
+
 .message {
   display: flex;
   gap: 12px;
-  max-width: 80%;
+  max-width: 85%;
   animation: messageIn 0.3s ease;
+  position: relative;
 }
 
 .message.user {
@@ -1658,18 +1693,52 @@ body {
   flex-direction: row-reverse;
 }
 
-.message-avatar {
+.message-avatar-wrap {
   width: 36px;
   height: 36px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+}
+
+.message-avatar {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   background: var(--bg-hover);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-muted);
+  overflow: hidden;
+}
+
+.message-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.message-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+.message.user .message-name {
+  text-align: right;
+  margin-right: 4px;
+  margin-left: 0;
 }
 
 .message.user .message-avatar {
@@ -1684,11 +1753,88 @@ body {
   padding: 12px 16px;
   font-size: 0.9rem;
   line-height: 1.6;
+  position: relative;
 }
 
 .message.user .message-bubble {
   background: var(--bg-elevated);
   border-color: var(--border-gold);
+}
+
+.message-swipe-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.swipe-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.swipe-btn:hover {
+  color: var(--gold);
+  background: rgba(201, 168, 76, 0.1);
+}
+
+.swipe-btn:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.message-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  position: absolute;
+  right: 0;
+  bottom: -28px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  z-index: 10;
+}
+
+.message:hover .message-actions {
+  opacity: 1;
+}
+
+.msg-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.msg-action-btn:hover {
+  color: var(--gold);
+  background: var(--bg-hover);
+}
+
+.play-swipe-indicator {
+  font-variant-numeric: tabular-nums;
+  min-width: 24px;
+  text-align: center;
 }
 
 .playground-input {
@@ -1963,4 +2109,155 @@ body {
   height: 6px;
   border-radius: 50%;
   background: var(--success);
+}
+
+/* ============================================
+   TAB 7: API SETTINGS
+   ============================================ */
+.api-settings-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.api-profile-sidebar {
+  width: 260px;
+  min-width: 260px;
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-deep);
+}
+
+.api-profile-sidebar-header {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.api-profile-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.api-profile-editor {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  background: var(--bg-base);
+}
+
+.api-profile-editor>.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.api-editor-inner {
+  max-width: 560px;
+}
+
+.api-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.api-editor-header h3 {
+  font-size: 1.1rem;
+  color: var(--text-gold);
+}
+
+.api-active-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid var(--border-gold);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+/* ============================================
+   SHOWCASE SUB-TABS
+   ============================================ */
+.sc-subtab {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 0;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.sc-subtab:hover {
+  color: var(--text-primary);
+}
+
+.sc-subtab.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+/* Character showcase cards */
+.char-showcase-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.char-showcase-card:hover {
+  border-color: var(--border-gold);
+  box-shadow: var(--shadow-gold);
+  transform: translateY(-2px);
+}
+
+.char-showcase-card .char-avatar {
+  width: 100px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 10px;
+  background: var(--bg-deep);
+}
+
+.char-showcase-card .char-name {
+  font-weight: 600;
+  color: var(--text-gold);
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.char-showcase-card .char-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
 }

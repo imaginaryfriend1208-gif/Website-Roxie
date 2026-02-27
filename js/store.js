@@ -12,6 +12,9 @@ const Store = (() => {
     personas: 'roxie_personas',
     personaTemplates: 'roxie_persona_templates',
     activeTab: 'roxie_active_tab',
+    charChats: 'roxie_char_chats',
+    apiProfiles: 'roxie_api_profiles',
+    activeProfileId: 'roxie_active_profile_id',
   };
 
   const _saveTimeouts = {};
@@ -89,8 +92,22 @@ const Store = (() => {
     save(KEYS.worlds, worlds);
   }
 
-  // --- Settings ---
+  // --- Settings (backward compatible — reads from active profile) ---
   function getSettings() {
+    const profiles = getApiProfiles();
+    const activeId = getActiveProfileId();
+    const profile = profiles.find(p => p.id === activeId) || profiles[0];
+    if (profile) {
+      return {
+        apiEndpoint: profile.endpoint || '',
+        apiKey: profile.apiKey || '',
+        model: profile.model || '',
+        temperature: profile.temperature ?? 0.7,
+        maxTokens: profile.maxTokens ?? 2048,
+        translationPrompt: profile.translationPrompt || 'Translate the following text to {language}. Preserve all formatting, placeholders (like {{char}}, {{user}}), and special syntax. Output ONLY the translated text, nothing else.',
+      };
+    }
+    // Fallback to legacy settings
     return _get(KEYS.settings) || {
       apiEndpoint: 'https://api.openai.com/v1/chat/completions',
       apiKey: '',
@@ -102,6 +119,39 @@ const Store = (() => {
   }
   function saveSettings(settings) {
     saveImmediate(KEYS.settings, settings);
+  }
+
+  // --- API Profiles ---
+  function getApiProfiles() {
+    const profiles = _get(KEYS.apiProfiles);
+    if (profiles && profiles.length > 0) return profiles;
+    // Migrate legacy settings to first profile
+    const legacy = _get(KEYS.settings);
+    if (legacy && legacy.apiKey) {
+      const migrated = [{
+        id: uuid(),
+        name: 'Default',
+        endpoint: legacy.apiEndpoint || 'https://api.openai.com/v1/chat/completions',
+        apiKey: legacy.apiKey || '',
+        model: legacy.model || 'gpt-4o-mini',
+        temperature: legacy.temperature ?? 0.7,
+        maxTokens: legacy.maxTokens ?? 2048,
+        translationPrompt: legacy.translationPrompt || '',
+      }];
+      _set(KEYS.apiProfiles, migrated);
+      _set(KEYS.activeProfileId, migrated[0].id);
+      return migrated;
+    }
+    return [];
+  }
+  function saveApiProfiles(profiles) {
+    saveImmediate(KEYS.apiProfiles, profiles);
+  }
+  function getActiveProfileId() {
+    return _get(KEYS.activeProfileId) || '';
+  }
+  function saveActiveProfileId(id) {
+    saveImmediate(KEYS.activeProfileId, id);
   }
 
   // --- Personas ---
@@ -126,6 +176,14 @@ const Store = (() => {
   }
   function saveActiveTab(tab) {
     saveImmediate(KEYS.activeTab, tab);
+  }
+
+  // --- Character Chats ---
+  function getCharacterChats() {
+    return _get(KEYS.charChats) || {};
+  }
+  function saveCharacterChats(chats) {
+    save(KEYS.charChats, chats);
   }
 
   // --- JSON Export/Import helpers ---
@@ -168,9 +226,12 @@ const Store = (() => {
     getShowcase, saveShowcase,
     getWorlds, saveWorlds,
     getSettings, saveSettings,
+    getApiProfiles, saveApiProfiles,
+    getActiveProfileId, saveActiveProfileId,
     getPersonas, savePersonas,
     getPersonaTemplates, savePersonaTemplates,
     getActiveTab, saveActiveTab,
+    getCharacterChats, saveCharacterChats,
     exportJSON, importJSON, uuid,
   };
 })();

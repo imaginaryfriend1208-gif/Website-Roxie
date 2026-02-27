@@ -65,7 +65,7 @@
             <rect x="3" y="14" width="7" height="7" />
             <rect x="14" y="14" width="7" height="7" />
           </svg>
-          <span class="tooltip" data-i18n="nav.preset_showcase">Preset Showcase</span>
+          <span class="tooltip" data-i18n="nav.showcase">Showcase</span>
         </button>
         <button class="sidebar-btn" data-tab="worldbook" id="nav-worldbook">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -88,6 +88,14 @@
             <circle cx="12" cy="7" r="4" />
           </svg>
           <span class="tooltip" data-i18n="nav.persona">User Persona</span>
+        </button>
+        <button class="sidebar-btn" data-tab="api-settings" id="nav-api-settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+          <span class="tooltip" data-i18n="nav.api_settings">API Settings</span>
         </button>
       </nav>
       <div class="sidebar-divider"></div>
@@ -226,7 +234,7 @@
         </div>
       </section>
 
-      <!-- TAB 3: PRESET SHOWCASE -->
+      <!-- TAB 3: SHOWCASE (Presets + Characters) -->
       <section class="tab-view" id="tab-preset-showcase">
         <div class="tab-header">
           <h1>
@@ -236,7 +244,7 @@
               <rect x="3" y="14" width="7" height="7" />
               <rect x="14" y="14" width="7" height="7" />
             </svg>
-            <span data-i18n="tab.preset_showcase">Preset Showcase</span>
+            <span data-i18n="tab.showcase">Showcase</span>
           </h1>
           <div class="tab-actions">
             <button class="btn btn-sm" id="sc-add-from-editor">
@@ -256,9 +264,16 @@
             </button>
           </div>
         </div>
-        <div class="showcase-content">
+        <div class="sc-subtabs" style="display:flex;gap:16px;padding:0 24px 12px;">
+          <button class="sc-subtab active" data-mode="presets" data-i18n="sc.tab_presets">Presets</button>
+          <button class="sc-subtab" data-mode="characters" data-i18n="sc.tab_characters">Characters</button>
+        </div>
+        <div class="showcase-content" id="sc-presets-view">
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;" id="sc-tags"></div>
           <div class="showcase-grid" id="sc-grid"></div>
+        </div>
+        <div class="showcase-content" id="sc-characters-view" style="display:none;">
+          <div class="showcase-grid" id="sc-char-grid"></div>
         </div>
       </section>
 
@@ -381,32 +396,59 @@
 
       <!-- TAB 5: PLAYGROUND -->
       <section class="tab-view" id="tab-playground">
-        <div class="tab-header">
-          <h1>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-            <span data-i18n="tab.playground">Playground</span>
-          </h1>
-          <div class="tab-actions">
-            <button class="btn btn-sm" id="pg-clear">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                <path d="M3 6h18" />
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+        <div class="tab-header" style="flex-direction:column;align-items:stretch;gap:12px;padding-bottom:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <h1>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
-              <span data-i18n="pg.clear">Clear</span>
-            </button>
-            <button class="btn btn-sm" id="pg-toggle-settings">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                <circle cx="12" cy="12" r="3" />
-                <path
-                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-              </svg>
-              <span data-i18n="pg.settings">Settings</span>
-            </button>
+              <span data-i18n="tab.playground">Playground</span>
+            </h1>
+            <div class="tab-actions">
+              <button class="btn btn-sm" id="pg-clear">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                </svg>
+                <span data-i18n="pg.clear">Clear</span>
+              </button>
+              <button class="btn btn-sm" id="pg-toggle-settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                  <circle cx="12" cy="12" r="3" />
+                  <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+                <span data-i18n="pg.settings">Settings</span>
+              </button>
+            </div>
+          </div>
+          <div class="pg-subtabs" style="display:flex;gap:16px;">
+            <button class="pg-subtab active" data-mode="standard" data-i18n="pg.tab_standard">💬 Standard API
+              Chat</button>
+            <button class="pg-subtab" data-mode="character" data-i18n="pg.tab_character">🎭 Character Chat</button>
           </div>
         </div>
         <div class="playground-layout">
+          <!-- Left Sidebar: Character Setup (Only visible in Character Mode) -->
+          <div class="pg-char-setup" id="pg-char-setup" style="display:none;">
+            <div style="padding:16px;">
+              <h3 style="font-size:0.9rem;color:var(--text-gold);margin-bottom:12px;" data-i18n="pg.setup_persona">User
+                Persona</h3>
+              <select class="form-select" id="pg-select-persona" style="width:100%;margin-bottom:20px;"></select>
+              <h3 style="font-size:0.9rem;color:var(--text-gold);margin-bottom:12px;" data-i18n="pg.setup_char">
+                Character</h3>
+              <select class="form-select" id="pg-select-char" style="width:100%;margin-bottom:12px;"></select>
+              <div id="pg-char-preview"
+                style="text-align:center;padding:12px;background:var(--bg-surface);border-radius:var(--radius-md);border:1px solid var(--border-subtle);display:none;">
+                <img id="pg-char-preview-img" src=""
+                  style="width:120px;height:160px;object-fit:cover;border-radius:var(--radius-sm);margin-bottom:8px;border:1px solid var(--border-gold);">
+                <div id="pg-char-preview-name" style="font-weight:600;color:var(--text-gold);margin-bottom:4px;"></div>
+                <div id="pg-char-preview-desc"
+                  style="font-size:0.75rem;color:var(--text-secondary);overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="playground-chat">
             <div class="playground-messages" id="pg-messages"></div>
             <div class="playground-input">
@@ -421,36 +463,18 @@
             </div>
           </div>
           <div class="playground-settings" id="pg-settings-panel">
-            <h3 data-i18n="pg.api_settings">⚙️ API Settings</h3>
-            <div class="form-group">
-              <label class="form-label" data-i18n="pg.endpoint">Endpoint URL</label>
-              <input class="form-input" id="pg-endpoint" placeholder="https://api.openai.com/v1/chat/completions">
+            <div id="pg-sys-inst-container">
+              <h3 data-i18n="pg.system_instruction">📝 System Instruction</h3>
+              <textarea class="form-textarea" id="pg-system-instruction" rows="6"
+                placeholder="System instruction for the AI..." style="font-size:0.85rem;" data-i18n="pg.sys_placeholder"
+                data-i18n-attr="placeholder"></textarea>
             </div>
-            <div class="form-group">
-              <label class="form-label" data-i18n="pg.api_key">API Key</label>
-              <input class="form-input" id="pg-api-key" type="password" placeholder="sk-...">
+            <div id="pg-char-api-hint"
+              style="display:none;background:rgba(201,168,76,0.05);border:1px dashed var(--border-gold);padding:12px;border-radius:var(--radius-sm);margin-top:12px;">
+              <p style="font-size:0.75rem;color:var(--text-gold);line-height:1.5;" data-i18n="pg.char_api_hint">In
+                Character Chat mode, the system instruction is automatically built by combining your Active Preset, User
+                Persona, Character Card, and Lorebook entries.</p>
             </div>
-            <div class="form-group">
-              <label class="form-label" data-i18n="pg.model">Model</label>
-              <input class="form-input" id="pg-model" placeholder="gpt-4o-mini">
-            </div>
-            <div class="form-group">
-              <label class="form-label" data-i18n="pg.temperature">Temperature</label>
-              <input class="form-input" id="pg-temperature" type="number" min="0" max="2" step="0.1" value="0.7">
-            </div>
-            <div class="form-group">
-              <label class="form-label" data-i18n="pg.max_tokens">Max Tokens</label>
-              <input class="form-input" id="pg-max-tokens" type="number" min="1" max="128000" value="2048">
-            </div>
-            <button class="btn btn-primary btn-sm" id="pg-save-settings" style="width:100%;margin-top:8px;"><span
-                data-i18n="pg.save_settings">Save Settings</span></button>
-
-            <div class="sidebar-divider" style="width:100%;margin:12px 0;"></div>
-
-            <h3 data-i18n="pg.system_instruction">📝 System Instruction</h3>
-            <textarea class="form-textarea" id="pg-system-instruction" rows="6"
-              placeholder="System instruction for the AI..." style="font-size:0.85rem;" data-i18n="pg.sys_placeholder"
-              data-i18n-attr="placeholder"></textarea>
           </div>
         </div>
       </section>
@@ -489,6 +513,50 @@
             <div class="persona-list" id="ps-persona-list"></div>
           </div>
           <div class="persona-editor" id="ps-editor"></div>
+        </div>
+      </section>
+
+      <!-- TAB 7: API SETTINGS -->
+      <section class="tab-view" id="tab-api-settings">
+        <div class="tab-header">
+          <h1>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+            <span data-i18n="tab.api_settings">API Settings</span>
+          </h1>
+        </div>
+        <div class="api-settings-layout">
+          <div class="api-profile-sidebar">
+            <div class="api-profile-sidebar-header">
+              <button class="btn btn-primary btn-sm" id="api-new-profile" style="width:100%;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>New Profile</span>
+              </button>
+              <div style="display:flex;gap:4px;">
+                <button class="btn btn-sm btn-ghost" id="api-rename-profile" style="flex:1;"><span
+                    data-i18n="btn.rename">Rename</span></button>
+                <button class="btn btn-sm btn-ghost btn-danger" id="api-delete-profile" style="flex:1;"><span
+                    data-i18n="btn.delete">Delete</span></button>
+              </div>
+            </div>
+            <div class="api-profile-list" id="api-profile-list"></div>
+          </div>
+          <div class="api-profile-editor" id="api-profile-editor">
+            <div class="empty-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              <p>Create or select a profile to configure.</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -563,6 +631,36 @@
     </div>
   </div>
 
+  <!-- Regen with Prompt Modal -->
+  <div class="modal-overlay" id="pg-regen-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 data-i18n="pg.regen_with_prompt">Regen with Instruction</h2>
+        <button class="modal-close" onclick="App.hideModal('pg-regen-modal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;" data-i18n="pg.regen_prompt_hint">
+          Add a temporary instruction to guide this response generation (e.g. "Answer in Vietnamese", "Make it
+          angrier").</p>
+        <textarea class="form-textarea" id="pg-regen-instruction" rows="3" placeholder="Enter instruction..."
+          data-i18n="pg.regen_placeholder" data-i18n-attr="placeholder"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="App.hideModal('pg-regen-modal')" data-i18n="btn.cancel">Cancel</button>
+        <button class="btn btn-primary" id="pg-regen-confirm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" width="14" height="14">
+            <polyline points="1 4 1 10 7 10" />
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+          </svg> <span data-i18n="pg.regen_go">Regenerate</span></button>
+      </div>
+    </div>
+  </div>
+
   <!-- ========== TRANSLATION SETTINGS MODAL ========== -->
   <div class="translate-settings-overlay" id="wb-translate-settings-overlay">
     <div class="translate-settings-modal">
@@ -605,6 +703,7 @@
   <script src="js/worldbook.js"></script>
   <script src="js/playground.js"></script>
   <script src="js/persona.js"></script>
+  <script src="js/api-settings.js"></script>
   <script src="js/app.js"></script>
 </body>
 

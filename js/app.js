@@ -10,6 +10,7 @@ const App = (() => {
         'worldbook',
         'playground',
         'persona',
+        'api-settings',
     ];
 
     function init() {
@@ -21,6 +22,7 @@ const App = (() => {
         Worldbook.init();
         Playground.init();
         Persona.init();
+        ApiSettings.init();
 
         // Apply translations to static UI
         I18n.updateStaticUI();

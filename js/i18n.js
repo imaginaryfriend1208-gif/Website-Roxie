@@ -11,18 +11,20 @@ const I18n = (() => {
             // Sidebar tooltips
             'nav.preset_editor': 'Preset Editor',
             'nav.character_card': 'Character Card',
-            'nav.preset_showcase': 'Preset Showcase',
+            'nav.showcase': 'Showcase',
             'nav.worldbook': 'Worldbook',
             'nav.playground': 'Playground',
             'nav.persona': 'User Persona',
+            'nav.api_settings': 'API Settings',
 
             // Tab headers
             'tab.preset_editor': 'Preset Editor',
             'tab.character_card': 'Character Cards',
-            'tab.preset_showcase': 'Preset Showcase',
+            'tab.showcase': 'Showcase',
             'tab.worldbook': 'Worldbook / Lorebook',
             'tab.playground': 'Playground',
             'tab.persona': 'User Persona',
+            'tab.api_settings': 'API Settings',
 
             // Common
             'btn.import': 'Import',
@@ -96,6 +98,10 @@ const I18n = (() => {
             'sc.preset_detail': 'Preset Detail',
             'sc.no_description': 'No description',
             'sc.prompts_count': '{count} prompts',
+            'sc.tab_presets': 'Presets',
+            'sc.tab_characters': 'Characters',
+            'sc.no_characters': 'No characters in showcase. Upload characters in Character Card tab.',
+            'sc.char_detail': 'Character Detail',
 
             // Worldbook
             'wb.worlds_tab': 'Worlds',
@@ -152,7 +158,7 @@ const I18n = (() => {
             'wb.translating': 'Translating...',
             'wb.translate_done': '✅ Translated!',
             'wb.translate_error': '❌ Translation failed: ',
-            'wb.translate_no_api': '⚠️ Please configure API key in Playground settings first.',
+            'wb.translate_no_api': '⚠️ Please configure API key in API Settings tab first.',
             'wb.translate_settings_btn': '⚙️ Settings',
 
             // Playground
@@ -160,18 +166,21 @@ const I18n = (() => {
             'pg.settings': 'Settings',
             'pg.clear_confirm': 'Clear all messages?',
             'pg.placeholder': 'Type your message...',
-            'pg.empty': 'Start a conversation. Configure API settings in the right panel.',
-            'pg.api_settings': '⚙️ API Settings',
-            'pg.endpoint': 'Endpoint URL',
-            'pg.api_key': 'API Key',
-            'pg.model': 'Model',
-            'pg.temperature': 'Temperature',
-            'pg.max_tokens': 'Max Tokens',
-            'pg.save_settings': 'Save Settings',
+            'pg.empty': 'Start a conversation. Configure API in the API Settings tab.',
             'pg.system_instruction': '📝 System Instruction',
             'pg.sys_placeholder': 'System instruction for the AI...',
-            'pg.settings_saved': 'API settings saved!',
-            'pg.no_api_key': '⚠️ Please configure your API key in the settings panel.',
+            'pg.no_api_key': '⚠️ Please configure your API key in the API Settings tab.',
+            'pg.tab_standard': '💬 Standard API Chat',
+            'pg.tab_character': '🎭 Character Chat',
+            'pg.setup_persona': 'User Persona',
+            'pg.setup_char': 'Character',
+            'pg.regen_with_prompt': 'Regen with Instruction',
+            'pg.regen_prompt_hint': 'Add a temporary instruction to guide this response generation (e.g. "Answer in Vietnamese", "Make it angrier").',
+            'pg.regen_placeholder': 'Enter instruction...',
+            'pg.regen_go': 'Regenerate',
+            'pg.char_api_hint': 'In Character Chat mode, the system instruction is automatically built by combining your Active Preset, User Persona, Character Card, and Lorebook entries.',
+            'pg.swipe_prev': 'Previous Swipe',
+            'pg.swipe_next': 'Next Swipe',
 
             // Persona
             'ps.new_persona': 'New Persona',
@@ -197,24 +206,47 @@ const I18n = (() => {
             'ps.delete_confirm': 'Delete persona "{name}"?',
             'ps.delete_tpl_confirm': 'Delete template "{name}"?',
             'ps.choose_template': 'Choose Template',
+
+            // API Settings
+            'api.new_profile_prompt': 'New profile name:',
+            'api.rename_prompt': 'Rename profile:',
+            'api.delete_confirm': 'Delete profile "{name}"?',
+            'api.saved': 'Profile saved!',
+            'api.set_active': 'Set Active',
+            'api.set_active_done': 'Active profile updated!',
+            'api.active': 'Active',
+            'api.test': 'Test',
+            'api.test_missing': 'Please enter endpoint and API key first.',
+            'api.test_success': '✅ Connection successful!',
+            'api.test_fail': '❌ Connection failed: ',
+            'api.no_profiles': 'No API profiles yet. Click "New Profile" to create one.',
+            'api.select_profile': 'Create or select a profile to configure.',
+            'api.endpoint': 'Endpoint URL',
+            'api.api_key': 'API Key',
+            'api.model': 'Model',
+            'api.temperature': 'Temperature',
+            'api.max_tokens': 'Max Tokens',
+            'api.save': 'Save',
         },
 
         vi: {
             // Sidebar tooltips
             'nav.preset_editor': 'Trình chỉnh sửa Preset',
             'nav.character_card': 'Thẻ Nhân vật',
-            'nav.preset_showcase': 'Trưng bày Preset',
+            'nav.showcase': 'Trưng bày',
             'nav.worldbook': 'Sách Thế giới',
             'nav.playground': 'Sân chơi',
             'nav.persona': 'Nhân cách Người dùng',
+            'nav.api_settings': 'Cài đặt API',
 
             // Tab headers
             'tab.preset_editor': 'Trình chỉnh sửa Preset',
             'tab.character_card': 'Thẻ Nhân vật',
-            'tab.preset_showcase': 'Trưng bày Preset',
+            'tab.showcase': 'Trưng bày',
             'tab.worldbook': 'Sách Thế giới / Lorebook',
             'tab.playground': 'Sân chơi',
             'tab.persona': 'Nhân cách Người dùng',
+            'tab.api_settings': 'Cài đặt API',
 
             // Common
             'btn.import': 'Nhập',
@@ -288,6 +320,10 @@ const I18n = (() => {
             'sc.preset_detail': 'Chi tiết Preset',
             'sc.no_description': 'Chưa có mô tả',
             'sc.prompts_count': '{count} prompt',
+            'sc.tab_presets': 'Presets',
+            'sc.tab_characters': 'Nhân vật',
+            'sc.no_characters': 'Chưa có nhân vật. Tải lên nhân vật trong tab Thẻ Nhân vật.',
+            'sc.char_detail': 'Chi tiết Nhân vật',
 
             // Worldbook
             'wb.worlds_tab': 'Thế giới',
@@ -344,7 +380,7 @@ const I18n = (() => {
             'wb.translating': 'Đang dịch...',
             'wb.translate_done': '✅ Đã dịch xong!',
             'wb.translate_error': '❌ Dịch thất bại: ',
-            'wb.translate_no_api': '⚠️ Vui lòng cấu hình API key trong cài đặt Playground trước.',
+            'wb.translate_no_api': '⚠️ Vui lòng cấu hình API key trong tab Cài đặt API trước.',
             'wb.translate_settings_btn': '⚙️ Cài đặt',
 
             // Playground
@@ -352,18 +388,21 @@ const I18n = (() => {
             'pg.settings': 'Cài đặt',
             'pg.clear_confirm': 'Xóa tất cả tin nhắn?',
             'pg.placeholder': 'Nhập tin nhắn...',
-            'pg.empty': 'Bắt đầu cuộc trò chuyện. Cấu hình API ở panel bên phải.',
-            'pg.api_settings': '⚙️ Cài đặt API',
-            'pg.endpoint': 'Đường dẫn API',
-            'pg.api_key': 'Khóa API',
-            'pg.model': 'Mô hình',
-            'pg.temperature': 'Nhiệt độ',
-            'pg.max_tokens': 'Token tối đa',
-            'pg.save_settings': 'Lưu cài đặt',
+            'pg.empty': 'Bắt đầu cuộc trò chuyện. Cấu hình API trong tab Cài đặt API.',
             'pg.system_instruction': '📝 Chỉ dẫn Hệ thống',
             'pg.sys_placeholder': 'Chỉ dẫn hệ thống cho AI...',
-            'pg.settings_saved': 'Đã lưu cài đặt API!',
-            'pg.no_api_key': '⚠️ Vui lòng cấu hình khóa API trong panel cài đặt.',
+            'pg.no_api_key': '⚠️ Vui lòng cấu hình khóa API trong tab Cài đặt API.',
+            'pg.tab_standard': '💬 Chat API Tiêu chuẩn',
+            'pg.tab_character': '🎭 Chat với Nhân vật',
+            'pg.setup_persona': 'Người dùng (Persona)',
+            'pg.setup_char': 'Nhân vật',
+            'pg.regen_with_prompt': 'Tạo lại với Chỉ dẫn',
+            'pg.regen_prompt_hint': 'Thêm chỉ dẫn tạm thời để điều hướng câu trả lời này (ví dụ: "Trả lời bằng tiếng Việt", "Tỏ ra giận dữ hơn").',
+            'pg.regen_placeholder': 'Nhập chỉ dẫn...',
+            'pg.regen_go': 'Tạo lại',
+            'pg.char_api_hint': 'Trong chế độ Chat với Nhân vật, chỉ dẫn hệ thống sẽ được tự động tạo dựa trên Preset đang chọn, Persona, Thẻ Nhân vật và dữ liệu Lorebook.',
+            'pg.swipe_prev': 'Vuốt trước',
+            'pg.swipe_next': 'Vuốt sau',
 
             // Persona
             'ps.new_persona': 'Persona mới',
@@ -389,6 +428,27 @@ const I18n = (() => {
             'ps.delete_confirm': 'Xóa persona "{name}"?',
             'ps.delete_tpl_confirm': 'Xóa mẫu "{name}"?',
             'ps.choose_template': 'Chọn Mẫu',
+
+            // API Settings
+            'api.new_profile_prompt': 'Tên profile mới:',
+            'api.rename_prompt': 'Đổi tên profile:',
+            'api.delete_confirm': 'Xóa profile "{name}"?',
+            'api.saved': 'Đã lưu profile!',
+            'api.set_active': 'Đặt làm mặc định',
+            'api.set_active_done': 'Đã cập nhật profile mặc định!',
+            'api.active': 'Đang dùng',
+            'api.test': 'Thử kết nối',
+            'api.test_missing': 'Vui lòng nhập endpoint và API key trước.',
+            'api.test_success': '✅ Kết nối thành công!',
+            'api.test_fail': '❌ Kết nối thất bại: ',
+            'api.no_profiles': 'Chưa có profile API. Nhấn "Profile Mới" để tạo.',
+            'api.select_profile': 'Tạo hoặc chọn profile để cấu hình.',
+            'api.endpoint': 'Đường dẫn API',
+            'api.api_key': 'Khóa API',
+            'api.model': 'Mô hình',
+            'api.temperature': 'Nhiệt độ',
+            'api.max_tokens': 'Token tối đa',
+            'api.save': 'Lưu',
         },
     };
 
@@ -416,6 +476,7 @@ const I18n = (() => {
         Worldbook.init();
         Playground.init();
         Persona.init();
+        ApiSettings.init();
     }
 
     function toggleLang() {
