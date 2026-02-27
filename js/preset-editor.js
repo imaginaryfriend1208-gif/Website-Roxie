@@ -1,6 +1,7 @@
 /* ============================================
    PRESET EDITOR — Chat Completion Style
    Supports locked (built-in) presets
+   Password-protected content viewing
    ============================================ */
 
 const PresetEditor = (() => {
@@ -8,6 +9,8 @@ const PresetEditor = (() => {
     let activePresetId = null;
     let dragSrcIndex = null;
     let roxiePresetData = null; // Loaded from data/roxie-preset.json
+    const _PRESET_PASS = '2510';
+    let _presetUnlocked = false;
 
     async function init() {
         // Load the built-in Roxie preset
@@ -180,7 +183,7 @@ const PresetEditor = (() => {
             return;
         }
 
-        // If locked: show prompt names only, no content, no controls
+        // If locked: show prompt names only, with unlock button
         if (preset.locked) {
             container.innerHTML = `
                 <div class="locked-preset-notice">
@@ -188,21 +191,44 @@ const PresetEditor = (() => {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32" style="margin-bottom:8px;opacity:0.5;">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                         </svg>
-                        <p>Built-in preset — read-only</p>
-                        <p style="font-size:0.75rem;margin-top:4px;">This preset cannot be edited or viewed. It contains ${preset.prompts.length} prompt items.</p>
+                        <p>Built-in preset — ${_presetUnlocked ? '🔓 unlocked' : '🔒 locked'}</p>
+                        <p style="font-size:0.75rem;margin-top:4px;">${_presetUnlocked ? 'Content visible. This preset contains' : 'This preset cannot be edited or viewed. It contains'} ${preset.prompts.length} prompt items.</p>
+                        <button class="btn btn-sm" id="pe-unlock-preset" style="margin-top:10px;font-size:0.75rem;padding:4px 14px;">
+                            ${_presetUnlocked ? '🔓 Lock' : '🔒 Unlock'}
+                        </button>
                     </div>
                     <div style="display:flex;flex-direction:column;gap:4px;padding:0 16px 16px;">
                         ${preset.prompts.map((p, i) => `
-                            <div class="locked-prompt-item" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-surface);border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
-                                <span class="prompt-role ${p.role}" style="font-size:0.65rem;padding:2px 6px;border-radius:3px;">${p.role}</span>
-                                <span style="flex:1;font-size:0.8rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.name)}</span>
-                                ${p.marker ? '<span style="font-size:0.65rem;color:var(--text-gold);">📌 marker</span>' : ''}
-                                <span style="font-size:0.65rem;color:${p.enabled !== false ? 'var(--success)' : 'var(--text-muted)'};">${p.enabled !== false ? '●' : '○'}</span>
+                            <div class="locked-prompt-item" style="display:flex;flex-direction:column;gap:4px;padding:8px 12px;background:var(--bg-surface);border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <span class="prompt-role ${p.role}" style="font-size:0.65rem;padding:2px 6px;border-radius:3px;">${p.role}</span>
+                                    <span style="flex:1;font-size:0.8rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.name)}</span>
+                                    ${p.marker ? '<span style="font-size:0.65rem;color:var(--text-gold);">📌 marker</span>' : ''}
+                                    <span style="font-size:0.65rem;color:${p.enabled !== false ? 'var(--success)' : 'var(--text-muted)'};">${p.enabled !== false ? '●' : '○'}</span>
+                                </div>
+                                ${_presetUnlocked && p.content ? `<pre style="font-size:0.7rem;color:var(--text-muted);margin:0;padding:6px 8px;background:var(--bg-deep);border-radius:4px;max-height:80px;overflow:hidden;white-space:pre-wrap;word-wrap:break-word;">${esc(p.content.slice(0, 300))}${p.content.length > 300 ? '...' : ''}</pre>` : ''}
                             </div>
                         `).join('')}
                     </div>
                 </div>
             `;
+
+            // Bind unlock/lock button
+            document.getElementById('pe-unlock-preset')?.addEventListener('click', () => {
+                if (_presetUnlocked) {
+                    _presetUnlocked = false;
+                    renderPromptList();
+                    return;
+                }
+                const pass = prompt('Enter password to view preset content:');
+                if (pass === _PRESET_PASS) {
+                    _presetUnlocked = true;
+                    renderPromptList();
+                    App.toast('Preset unlocked!');
+                } else if (pass !== null) {
+                    App.toast('Wrong password!', 'error');
+                }
+            });
             return;
         }
 
