@@ -350,7 +350,6 @@ Cultural Impact: `
             </span>
             ${translateBarHtml('wb-f-content')}
           </label>
-          <div id="wb-template-popup" class="wb-template-popup" style="display:none;"></div>
           <textarea class="form-textarea" data-field="content" id="wb-f-content" placeholder="${I18n.t('wb.field.content')}...">${esc(entry.content)}</textarea>
         </div>
         <div class="wb-editor-toggles">
@@ -412,99 +411,76 @@ Cultural Impact: `
     cfgBtn?.addEventListener('click', () => openTranslateSettings());
   }
 
-  // ========== TEMPLATE PICKER ==========
+  // ========== TEMPLATE MODAL ==========
+  let _tplModalEl = null;
+
   function bindTemplateButton(entry) {
     const btn = document.getElementById('wb-template-btn');
-    const popup = document.getElementById('wb-template-popup');
-    if (!btn || !popup) return;
-
+    if (!btn) return;
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (popup.style.display === 'block') { popup.style.display = 'none'; return; }
-      renderTemplatePopup(popup, entry);
-      popup.style.display = 'block';
+      openTemplateModal(entry);
     });
-
-    // Close popup when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!popup.contains(e.target) && e.target !== btn) popup.style.display = 'none';
-    }, { once: false });
   }
 
-  function renderTemplatePopup(popup, entry) {
+  function openTemplateModal(entry) {
+    // Remove old modal if exists
+    if (_tplModalEl) _tplModalEl.remove();
+
     const all = getAllEntryTemplates();
-    popup.innerHTML = `
-      <div class="wb-tpl-header">
-        <span style="font-weight:600;font-size:0.8rem;color:var(--text-gold);">📋 Entry Templates</span>
-        <div style="display:flex;gap:4px;">
-          <button class="btn btn-sm" id="wb-tpl-add" style="font-size:0.68rem;padding:2px 8px;">+ New</button>
-          <button class="btn btn-sm" id="wb-tpl-import" style="font-size:0.68rem;padding:2px 8px;">📥 Import</button>
-        </div>
-      </div>
-      <div class="wb-tpl-list">
-        ${all.map(t => `
-          <div class="wb-tpl-item" data-tpl-id="${t.id}">
-            <span class="wb-tpl-name">${t.locked ? '' : ''}${esc(t.name)}</span>
-            <div class="wb-tpl-actions">
-              <button class="wb-tpl-use" data-tpl-id="${t.id}" title="Insert">✅</button>
-              ${!t.locked ? `<button class="wb-tpl-del" data-tpl-id="${t.id}" title="Delete">🗑</button>` : ''}
-            </div>
+    const selectedId = all[0]?.id || '';
+
+    const overlay = document.createElement('div');
+    overlay.className = 'wb-tpl-modal-overlay';
+    overlay.innerHTML = `
+      <div class="wb-tpl-modal">
+        <div class="wb-tpl-modal-header">
+          <h3 style="margin:0;font-size:1rem;color:var(--text-gold);display:flex;align-items:center;gap:8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Entry Templates
+          </h3>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button class="btn btn-sm" id="wb-tpl-m-add" style="font-size:0.75rem;">+ New</button>
+            <button class="btn btn-sm" id="wb-tpl-m-import" style="font-size:0.75rem;">📥 Import</button>
+            <button class="btn btn-sm" id="wb-tpl-m-close" style="font-size:0.75rem;">✕ Close</button>
           </div>
-        `).join('')}
+        </div>
+        <div class="wb-tpl-modal-body">
+          <div class="wb-tpl-modal-sidebar" id="wb-tpl-m-list"></div>
+          <div class="wb-tpl-modal-preview" id="wb-tpl-m-preview">
+            <div class="wb-tpl-preview-header" id="wb-tpl-m-preview-header"></div>
+            <pre class="wb-tpl-preview-content" id="wb-tpl-m-preview-content"></pre>
+            <div class="wb-tpl-preview-footer" id="wb-tpl-m-preview-footer"></div>
+          </div>
+        </div>
       </div>
     `;
 
-    // Use template
-    popup.querySelectorAll('.wb-tpl-use').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const tpl = all.find(t => t.id === btn.dataset.tplId);
-        if (!tpl) return;
-        const textarea = document.getElementById('wb-f-content');
-        if (!textarea) return;
-        // Insert template content (replace {{name}} with entry title)
-        const content = tpl.content.replace(/\{\{name\}\}/gi, entry.title || 'Untitled');
-        textarea.value = content;
-        textarea.dispatchEvent(new Event('input', { bubbles: true }));
-        popup.style.display = 'none';
-        App.toast(`Template "${tpl.name}" applied`);
-      });
-    });
+    document.body.appendChild(overlay);
+    _tplModalEl = overlay;
 
-    // Delete custom template
-    popup.querySelectorAll('.wb-tpl-del').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const id = btn.dataset.tplId;
-        let customs = getCustomEntryTemplates();
-        const t = customs.find(t => t.id === id);
-        if (!t) return;
-        const ok = await App.confirm(`Delete template "${t.name}"?`);
-        if (!ok) return;
-        customs = customs.filter(t => t.id !== id);
-        saveCustomEntryTemplates(customs);
-        renderTemplatePopup(popup, entry);
-        App.toast('Template deleted');
-      });
-    });
+    // Render template list
+    renderModalTemplateList(all, selectedId, entry);
 
-    // Add new custom template
-    document.getElementById('wb-tpl-add')?.addEventListener('click', (e) => {
-      e.stopPropagation();
+    // Close handlers
+    document.getElementById('wb-tpl-m-close')?.addEventListener('click', () => closeTemplateModal());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeTemplateModal(); });
+
+    // Add new template
+    document.getElementById('wb-tpl-m-add')?.addEventListener('click', () => {
       const name = prompt('Template name:', 'My Template');
       if (!name) return;
-      const content = prompt('Template content (use {{name}} as placeholder):', '[{{name}}]\nDescription: ');
-      if (content === null) return;
       const customs = getCustomEntryTemplates();
-      customs.push({ id: Store.uuid(), name, content, locked: false });
+      const t = { id: Store.uuid(), name, content: `[${name}: {{name}}]\nDescription: \nDetails: `, locked: false };
+      customs.push(t);
       saveCustomEntryTemplates(customs);
-      renderTemplatePopup(popup, entry);
+      const updatedAll = getAllEntryTemplates();
+      renderModalTemplateList(updatedAll, t.id, entry);
       App.toast('Template added');
     });
 
-    // Import template from JSON
-    document.getElementById('wb-tpl-import')?.addEventListener('click', (e) => {
-      e.stopPropagation();
+    // Import template
+    document.getElementById('wb-tpl-m-import')?.addEventListener('click', () => {
       const input = document.createElement('input');
       input.type = 'file'; input.accept = '.json,.txt';
       input.onchange = async (ev) => {
@@ -513,7 +489,6 @@ Cultural Impact: `
           const text = await file.text();
           let tplData;
           try { tplData = JSON.parse(text); } catch {
-            // Plain text file — use filename as name, content as template
             tplData = { name: file.name.replace(/\.[^.]+$/, ''), content: text };
           }
           const customs = getCustomEntryTemplates();
@@ -523,12 +498,115 @@ Cultural Impact: `
             customs.push({ id: Store.uuid(), name: tplData.name || 'Imported', content: tplData.content || '', locked: false });
           }
           saveCustomEntryTemplates(customs);
-          renderTemplatePopup(popup, entry);
+          const updatedAll = getAllEntryTemplates();
+          renderModalTemplateList(updatedAll, updatedAll[updatedAll.length - 1].id, entry);
           App.toast('Template(s) imported');
         } catch (err) { App.toast('Import failed: ' + err.message, 'error'); }
       };
       input.click();
     });
+  }
+
+  function renderModalTemplateList(all, selectedId, entry) {
+    const listEl = document.getElementById('wb-tpl-m-list');
+    if (!listEl) return;
+
+    listEl.innerHTML = `
+      <div class="wb-tpl-m-section-label">Built-in</div>
+      ${all.filter(t => t.locked).map(t => `
+        <div class="wb-tpl-m-item ${t.id === selectedId ? 'active' : ''}" data-tpl-id="${t.id}">
+          <span class="wb-tpl-m-item-name">${esc(t.name)}</span>
+        </div>
+      `).join('')}
+      ${getCustomEntryTemplates().length > 0 ? `
+        <div class="wb-tpl-m-section-label" style="margin-top:12px;">Custom</div>
+        ${all.filter(t => !t.locked).map(t => `
+          <div class="wb-tpl-m-item ${t.id === selectedId ? 'active' : ''}" data-tpl-id="${t.id}">
+            <span class="wb-tpl-m-item-name">${esc(t.name)}</span>
+            <button class="wb-tpl-m-del" data-tpl-id="${t.id}" title="Delete">🗑</button>
+          </div>
+        `).join('')}
+      ` : ''}
+    `;
+
+    // Show preview for selected
+    showTemplatePreview(all, selectedId, entry);
+
+    // Bind list item clicks
+    listEl.querySelectorAll('.wb-tpl-m-item').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('.wb-tpl-m-del')) return;
+        listEl.querySelectorAll('.wb-tpl-m-item').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+        showTemplatePreview(all, el.dataset.tplId, entry);
+      });
+    });
+
+    // Bind delete buttons
+    listEl.querySelectorAll('.wb-tpl-m-del').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.tplId;
+        let customs = getCustomEntryTemplates();
+        const t = customs.find(x => x.id === id);
+        if (!t) return;
+        const ok = await App.confirm(`Delete template "${t.name}"?`);
+        if (!ok) return;
+        customs = customs.filter(x => x.id !== id);
+        saveCustomEntryTemplates(customs);
+        const updatedAll = getAllEntryTemplates();
+        renderModalTemplateList(updatedAll, updatedAll[0]?.id || '', entry);
+        App.toast('Template deleted');
+      });
+    });
+  }
+
+  function showTemplatePreview(all, tplId, entry) {
+    const tpl = all.find(t => t.id === tplId);
+    const headerEl = document.getElementById('wb-tpl-m-preview-header');
+    const contentEl = document.getElementById('wb-tpl-m-preview-content');
+    const footerEl = document.getElementById('wb-tpl-m-preview-footer');
+    if (!headerEl || !contentEl || !footerEl) return;
+
+    if (!tpl) {
+      headerEl.innerHTML = '';
+      contentEl.textContent = 'Select a template to preview';
+      footerEl.innerHTML = '';
+      return;
+    }
+
+    const previewContent = tpl.content.replace(/\{\{name\}\}/gi, entry.title || 'Untitled');
+
+    headerEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:1.1rem;font-weight:600;color:var(--text-primary);">${esc(tpl.name)}</span>
+        ${tpl.locked ? '<span style="font-size:0.65rem;background:rgba(201,168,76,0.15);color:var(--text-gold);padding:2px 8px;border-radius:10px;">Built-in</span>' : '<span style="font-size:0.65rem;background:rgba(100,200,100,0.15);color:#6c6;padding:2px 8px;border-radius:10px;">Custom</span>'}
+      </div>
+      <p style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;">Preview — <code>{{name}}</code> will be replaced with "${esc(entry.title || 'Untitled')}"</p>
+    `;
+
+    contentEl.textContent = previewContent;
+
+    footerEl.innerHTML = `
+      <button class="btn btn-primary" id="wb-tpl-m-use" style="width:100%;font-size:0.85rem;padding:10px;">
+        ✅ Use This Template
+      </button>
+    `;
+
+    // Bind use button
+    document.getElementById('wb-tpl-m-use')?.addEventListener('click', () => {
+      const textarea = document.getElementById('wb-f-content');
+      if (textarea) {
+        textarea.value = previewContent;
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      closeTemplateModal();
+      App.toast(`Template "${tpl.name}" applied`);
+    });
+  }
+
+  function closeTemplateModal() {
+    if (_tplModalEl) { _tplModalEl.remove(); _tplModalEl = null; }
   }
 
   async function translateField(fieldId, langKey) {
