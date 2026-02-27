@@ -1650,6 +1650,100 @@ body {
   margin-top: 4px;
 }
 
+/* Chat Session Tabs */
+.chat-session-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 16px;
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border-subtle);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.chat-session-tabs::-webkit-scrollbar {
+  height: 2px;
+}
+
+.chat-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  max-width: 180px;
+  position: relative;
+}
+
+.chat-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.chat-tab.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+  background: var(--bg-surface);
+}
+
+.chat-tab-icon {
+  font-size: 0.7rem;
+}
+
+.chat-tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.chat-tab-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 2px;
+  opacity: 0;
+  transition: all var(--transition-fast);
+}
+
+.chat-tab:hover .chat-tab-close {
+  opacity: 1;
+}
+
+.chat-tab-close:hover {
+  color: var(--danger);
+}
+
+.chat-tab-new {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 4px;
+  transition: all var(--transition-fast);
+}
+
+.chat-tab-new:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(201, 168, 76, 0.08);
+}
+
 .pg-subtab {
   background: transparent;
   border: none;

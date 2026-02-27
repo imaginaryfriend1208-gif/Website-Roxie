@@ -148,7 +148,14 @@ const CharacterCard = (() => {
         <div class="char-detail-info">
           <input class="form-input" value="${esc(char.name)}" data-field="name" style="font-size:1.3rem;font-weight:600;color:var(--text-gold);background:transparent;border:1px solid transparent;" placeholder="Character name">
           <div style="display:flex;gap:6px;flex-wrap:wrap;">${(char.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
-          ${char._lorebookWorldId ? `<button class="btn btn-sm" id="cc-goto-lorebook" style="margin-top:8px;background:rgba(201,168,76,0.15);border:1px solid var(--gold);color:var(--text-gold);display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> 📖 Lorebook</button>` : (charHasBook ? `<button class="btn btn-sm" id="cc-import-lorebook" style="margin-top:8px;background:rgba(201,168,76,0.08);border:1px dashed var(--gold);color:var(--text-secondary);display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Import Lorebook</button>` : '')}
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+            <label style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap;">📖 Lorebook:</label>
+            <select class="form-select" id="cc-lorebook-select" style="flex:1;font-size:0.78rem;padding:4px 8px;">
+              <option value="">— None —</option>
+              ${(Store.getWorlds() || []).map(w => `<option value="${w.id}" ${w.id === char._lorebookWorldId ? 'selected' : ''}>${esc(w.name)}</option>`).join('')}
+            </select>
+            ${charHasBook && !char._lorebookWorldId ? `<button class="btn btn-sm" id="cc-import-lorebook" style="font-size:0.7rem;padding:3px 8px;">Import</button>` : ''}
+          </div>
           <div style="display:flex;gap:8px;margin-top:8px;">
             <button class="btn btn-sm" id="cc-export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> ${I18n.t('btn.export')}</button>
             <button class="btn btn-sm btn-danger" id="cc-delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg> ${I18n.t('btn.delete')}</button>
@@ -183,18 +190,11 @@ const CharacterCard = (() => {
             Store.exportJSON(d, `${char.name.replace(/\s+/g, '_')}_card.json`);
             App.toast(I18n.t('cc.exported'));
         });
-        // Lorebook badge: go to linked world
-        document.getElementById('cc-goto-lorebook')?.addEventListener('click', () => {
-            const worldExists = Worldbook.selectWorld(char._lorebookWorldId);
-            if (worldExists === false) {
-                // World was lost (e.g. deleted or data not saved properly)
-                App.toast('⚠️ Lorebook world not found — please re-import', 'warning');
-                char._lorebookWorldId = null;
-                save();
-                renderDetail();
-                return;
-            }
-            App.switchTab('worldbook');
+        // Lorebook selector: link character to a world
+        document.getElementById('cc-lorebook-select')?.addEventListener('change', (e) => {
+            char._lorebookWorldId = e.target.value || null;
+            save();
+            App.toast(char._lorebookWorldId ? '📖 Lorebook linked!' : '📖 Lorebook unlinked');
         });
         // Lorebook badge: import from raw data (for cards not yet imported)
         document.getElementById('cc-import-lorebook')?.addEventListener('click', () => {

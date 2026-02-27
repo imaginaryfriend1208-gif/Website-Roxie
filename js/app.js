@@ -54,6 +54,10 @@ const App = (() => {
         });
 
         Store.saveActiveTab(tabId);
+
+        // Refresh modules that need updated data when switching to their tab
+        if (tabId === 'playground' && typeof Playground !== 'undefined') Playground.refresh();
+        if (tabId === 'preset-showcase' && typeof PresetShowcase !== 'undefined' && PresetShowcase.refresh) PresetShowcase.refresh();
     }
 
     // --- Toast Notifications ---

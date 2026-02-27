@@ -181,6 +181,10 @@ const I18n = (() => {
             'pg.char_api_hint': 'In Character Chat mode, the system instruction is automatically built by combining your Active Preset, User Persona, Character Card, and Lorebook entries.',
             'pg.swipe_prev': 'Previous Swipe',
             'pg.swipe_next': 'Next Swipe',
+            'pg.new_chat': 'New Chat',
+            'pg.untitled_chat': 'Chat',
+            'pg.rename_chat': 'Rename chat:',
+            'pg.close_chat_confirm': 'Close chat "{name}"?',
 
             // Persona
             'ps.new_persona': 'New Persona',
@@ -403,6 +407,10 @@ const I18n = (() => {
             'pg.char_api_hint': 'Trong chế độ Chat với Nhân vật, chỉ dẫn hệ thống sẽ được tự động tạo dựa trên Preset đang chọn, Persona, Thẻ Nhân vật và dữ liệu Lorebook.',
             'pg.swipe_prev': 'Vuốt trước',
             'pg.swipe_next': 'Vuốt sau',
+            'pg.new_chat': 'Chat mới',
+            'pg.untitled_chat': 'Chat',
+            'pg.rename_chat': 'Đổi tên chat:',
+            'pg.close_chat_confirm': 'Đóng chat "{name}"?',
 
             // Persona
             'ps.new_persona': 'Persona mới',
