@@ -199,12 +199,12 @@ const PresetEditor = (() => {
                     </div>
                     <div style="display:flex;flex-direction:column;gap:4px;padding:0 16px 16px;">
                         ${preset.prompts.map((p, i) => `
-                            <div class="locked-prompt-item" style="display:flex;flex-direction:column;gap:4px;padding:8px 12px;background:var(--bg-surface);border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
+                            <div class="locked-prompt-item ${p.enabled !== false ? '' : 'disabled'}" style="display:flex;flex-direction:column;gap:4px;padding:8px 12px;background:var(--bg-surface);border-radius:var(--radius-sm);border:1px solid var(--border-subtle);opacity:${p.enabled !== false ? '1' : '0.5'};transition:opacity 0.15s;">
                                 <div style="display:flex;align-items:center;gap:8px;">
                                     <span class="prompt-role ${p.role}" style="font-size:0.65rem;padding:2px 6px;border-radius:3px;">${p.role}</span>
                                     <span style="flex:1;font-size:0.8rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.name)}</span>
                                     ${p.marker ? '<span style="font-size:0.65rem;color:var(--text-gold);">📌 marker</span>' : ''}
-                                    <span style="font-size:0.65rem;color:${p.enabled !== false ? 'var(--success)' : 'var(--text-muted)'};">${p.enabled !== false ? '●' : '○'}</span>
+                                    <label class="toggle" style="margin:0;"><input type="checkbox" ${p.enabled !== false ? 'checked' : ''} data-action="locked-toggle" data-index="${i}"><span class="toggle-slider"></span></label>
                                 </div>
                                 ${_presetUnlocked && p.content ? `<pre style="font-size:0.7rem;color:var(--text-muted);margin:0;padding:6px 8px;background:var(--bg-deep);border-radius:4px;max-height:80px;overflow:hidden;white-space:pre-wrap;word-wrap:break-word;">${esc(p.content.slice(0, 300))}${p.content.length > 300 ? '...' : ''}</pre>` : ''}
                             </div>
@@ -212,6 +212,18 @@ const PresetEditor = (() => {
                     </div>
                 </div>
             `;
+
+            // Bind toggle switches for locked preset
+            container.querySelectorAll('[data-action="locked-toggle"]').forEach(el => {
+                el.addEventListener('change', () => {
+                    const idx = parseInt(el.dataset.index);
+                    preset.prompts[idx].enabled = el.checked;
+                    save();
+                    // Update opacity visually without full re-render
+                    const item = el.closest('.locked-prompt-item');
+                    if (item) item.style.opacity = el.checked ? '1' : '0.5';
+                });
+            });
 
             // Bind unlock/lock button
             document.getElementById('pe-unlock-preset')?.addEventListener('click', () => {
